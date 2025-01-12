@@ -14,8 +14,6 @@ These instructions describe a dew point ventilation system. This system is used 
 The following picture shows the components schematically:
 ![Schematic overview of the dew point ventilation system](images/ventilation-scheme.svg)
 
-The following picture shows the sensors, the control unit and the radio-controlled socket:
-![Illustration of the components](images/Bauteile.png)
 
 The individual connections of the control unit are described in more detail in the following image.
 ![Components overview](images/Taupunkt-Lueftung-Ueberblick.png)
