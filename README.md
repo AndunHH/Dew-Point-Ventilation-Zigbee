@@ -1,16 +1,7 @@
 # Dew-Point-Ventilation-Zigbee
 Dew Point Ventilation based on Zigbee with ESP32C6
 
-This repository contains the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter).
-
-
-# Overview of the code provided
-
-TODO: write me :)
-
-# How to install with platformIO
-
-todo: copy from spacemouse
+This repository contains the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter). A short overview is also given below.
 
 # Instructions for the dew point ventilator
 These instructions describe a dew point ventilation system. This system is used to measure the humidity of the air at two locations. If the air outside is drier in absolute terms than inside, a fan is switched on. 
@@ -18,12 +9,38 @@ These instructions describe a dew point ventilation system. This system is used 
 The following picture shows the components schematically:
 ![Schematic overview of the dew point ventilation system](images/ventilation-scheme.svg)
 
-The individual components of the control unit are described in more detail in the following image:
+The temperature is measured by an internal and external DHT22 sensor. The controll unit checks whether ventilation is useful and commands the socket via zigbee to turn on the fan for ventilation.
+
+The individual components inside the control unit are described in more detail in the following image:
 ![Components overview](images/controller-overview.svg)
 
 Check out the following 3d modelled parts:
 - [Case for dew point ventilation with seeed xiao esp32c6 and DHT22](https://www.printables.com/model/1143678-case-for-dew-point-ventilation-with-seeed-xiao-esp)
 - [Grove Temperature Humidity Sensor DHT22 case](https://www.printables.com/model/1145516-grove-temperature-humidity-sensor-dht22-case)
+
+# Overview of the code provided
+
+The code is intended to be compiled in vscode with platformio. The main programm logic can be found in the [main.cpp](DewPointFan/src/main.cpp) and is calling six helping classes, which can be found in the lib folder:
+1. ProcessSensorData: Read the sensors, calculate the dewpoint and decide if ventilation is useful.
+2. ControlFan: Handle the mode selection by the user and the duration of the fan being on or off.
+3. ZigbeeSwitchHelper: Handles the zigbee communication with the mains socket, based on the Zigbee Arduino library.
+4. RTCHelper: Sets the RTC if necessary and supplies the date information for display and logging.
+5. SDhelper: Write data to the sd card in regular intervals
+6. DispHelper: Show status information on the display.
+
+Here is also a short sketch of the main idea:
+
+![Program flow](images/programFlow.drawio.svg)
+
+# How to install with platformIO
+
+You can use PlatformIO to flash the board with this fast steps. 
+1. Install PlatformIO or [pioarduino](https://github.com/pioarduino/platform-espressif32/).
+2. Clone this repo and open it in vscode.
+3. The project should be configured automatically.
+4. Click compile and upload -> Done
+
+
 
 # Setup and commissioning
 The outdoor sensor should be placed outside so that it can measure the air temperature and humidity of the outside air. A hanger is provided for this purpose.
@@ -57,8 +74,7 @@ The measured values of the sensors can be read on the display of the control uni
 2. Relative humidity in percent
 3. The dew point temperature in °C, which serves as a measure of the absolute humidity.
 4. Evaluation of the conditions. This indicates whether ventilation makes sense or why it does not.
-
-![alt text](images/Temperatur-Anzeige.png)
+![Overview of the measurement data](images/measurment-display.svg)
 
 TODO: translate picture
 
@@ -84,13 +100,13 @@ The micro SD card can be clicked into place by pressing lightly on the right-han
 
 The data on the SD card can be converted into a nice graphic using the appropriate program. 
 
-TODO: The programm needs to be published!
-
 ![example of the evaluated picture](images/2024-05.png)
+
+The programm for visulation is not jet published... coming soon.
 
 # Coupling a new socket outlet
 
-A new zigbee device can be coupled for 180s after a reset of the contorller. To delete old couplings a zigbee factory reset can be done with a long press on the boot button on the esp32c6.
+A new zigbee device can be coupled for 180s after a reset of the controller. To delete old couplings a zigbee factory reset can be done with a long press on the boot button on the esp32c6.
 
 # Components
 | component | Approx. price |
@@ -106,6 +122,6 @@ A new zigbee device can be coupled for 180s after a reset of the contorller. To 
 | __total__ | __80 €__ |
 
 
-Additionally required:
+Obviously, additionally required:
 
-Bathroom fan or similar.
+- Bathroom fan
