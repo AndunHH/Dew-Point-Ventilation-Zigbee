@@ -14,11 +14,8 @@ These instructions describe a dew point ventilation system. This system is used 
 The following picture shows the components schematically:
 ![Schematic overview of the dew point ventilation system](images/ventilation-scheme.svg)
 
-
-The individual connections of the control unit are described in more detail in the following image.
-![Components overview](images/Taupunkt-Lueftung-Ueberblick.png)
-
-TODO: Translate pictures
+The individual components of the control unit are described in more detail in the following image:
+![Components overview](images/controller-overview.svg)
 
 Check out the following 3d modelled parts:
 - [Case for dew point ventilation with seeed xiao esp32c6 and DHT22](https://www.printables.com/model/1143678-case-for-dew-point-ventilation-with-seeed-xiao-esp)
