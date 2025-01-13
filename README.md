@@ -1,12 +1,16 @@
 # Dew-Point-Ventilation-Zigbee
 Dew Point Ventilation based on Zigbee with ESP32C6
 
-This repository containt the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter).
+This repository contains the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter).
 
 
 # Overview of the code provided
 
 TODO: write me :)
+
+# How to install with platformIO
+
+todo: copy from spacemouse
 
 # Instructions for the dew point ventilator
 These instructions describe a dew point ventilation system. This system is used to measure the humidity of the air at two locations. If the air outside is drier in absolute terms than inside, a fan is switched on. 
