@@ -76,8 +76,6 @@ The measured values of the sensors can be read on the display of the control uni
 4. Evaluation of the conditions. This indicates whether ventilation makes sense or why it does not.
 ![Overview of the measurement data](images/measurment-display.svg)
 
-TODO: translate picture
-
 # Off, on and automatic mode
 
 The mode of the device can be switched using the small recessed button.
