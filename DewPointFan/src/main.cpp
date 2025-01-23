@@ -111,7 +111,7 @@ void loop()
   yield();
 
   // SD loop
-  if (sdHelper.loop())
+  if (sdHelper.loop()) // check if it is time to write data to the sd card
   {
     // data should be updated and written!
     rtcHelper.getFileName(tmpFileName);
@@ -126,7 +126,7 @@ void loop()
 
   yield();
 
-  // Display Hanlding
+  // Check if a new screens needs to be drawn to the display
   switch (dispHelper.loop())
   {
   case DISP_TIME:
@@ -167,6 +167,8 @@ void loop()
 
     Serial.println(logCtrlStr);
 */
+
+    // let the LED blink...
     ledState == HIGH ? ledState = LOW : ledState = HIGH;
     digitalWrite(LED_BUILTIN, ledState);
   }

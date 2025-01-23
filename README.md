@@ -7,6 +7,7 @@ This repository contains the source code for a dew point ventilator as initially
 These instructions describe a dew point ventilation system. This system is used to measure the humidity of the air at two locations. If the air outside is drier in absolute terms than inside, a fan is switched on. 
 
 The following picture shows the components schematically:
+
 ![Schematic overview of the dew point ventilation system](images/ventilation-scheme.svg)
 
 The temperature is measured by an internal and external DHT22 sensor. The controll unit checks whether ventilation is useful and commands the socket via zigbee to turn on the fan for ventilation.
@@ -40,8 +41,6 @@ You can use PlatformIO to flash the board with this fast steps.
 3. The project should be configured automatically.
 4. Click compile and upload -> Done
 
-
-
 # Setup and commissioning
 The outdoor sensor should be placed outside so that it can measure the air temperature and humidity of the outside air. A hanger is provided for this purpose.
 
@@ -74,6 +73,7 @@ The measured values of the sensors can be read on the display of the control uni
 2. Relative humidity in percent
 3. The dew point temperature in °C, which serves as a measure of the absolute humidity.
 4. Evaluation of the conditions. This indicates whether ventilation makes sense or why it does not.
+
 ![Overview of the measurement data](images/measurment-display.svg)
 
 # Off, on and automatic mode
@@ -96,11 +96,15 @@ Regardless of the mode, the display always shows whether ventilation is theoreti
 
 The micro SD card can be clicked into place by pressing lightly on the right-hand side of the housing. This causes it to come out a few millimeters and can be removed.
 
-The data on the SD card can be converted into a nice graphic using the appropriate program. 
+The data on the SD card can be converted into a nice graphic using the Jupyter notebook [Dewpoint-Visualization.ipynb](Visualization/Dewpoint-Visualization.ipynb). 
+
+The visualization shows:
+1. The temperature inside and outside. The limits are shown as a dotted line. (At the moment the limits are not read from the sd card, but are hard coded into the visualization.)
+2. The measured relative humidity.
+3. The calculated dew point. If the outer dew point is below the inner dewpoint, the air contains less humidity, the are between the curves is colored in light green. If the differences is above the necessary 3 K difference, the area is colored in dark green.
+4. The summed time how long the fan was turned on is shown in between the plot.
 
 ![example of the evaluated picture](images/2024-05.png)
-
-The programm for visulation is not jet published... coming soon.
 
 # Coupling a new socket outlet
 
