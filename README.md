@@ -121,6 +121,8 @@ A new zigbee device can be coupled for 180s after a reset of the controller. To 
 | 3D print | 15 € |
 | Zigbee socket | 8 € | 
 | Cell phone power supply + USB-C cable | 5 € | 
+| CR1220 battery for RTC | <1€ |
+| M2 and M3 screws ... | <1€ |
 | __total__ | __80 €__ |
 
 
