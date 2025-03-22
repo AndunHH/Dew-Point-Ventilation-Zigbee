@@ -41,6 +41,31 @@ You can use PlatformIO to flash the board with this fast steps.
 3. The project should be configured automatically.
 4. Click compile and upload -> Done
 
+# Electronic details
+The DHT sensors are connected as follows:
+
+### inner sensor
+
+| pins of "Analog" connector 	|	pins of DHT22.1|
+| --- | --- |
+| GND | 	GND |
+|3V3 				|	VDD |
+|N/A = A0 			|	NC (not in function) |
+|0 = D0 				|	SDA |
+
+
+### outer sensor
+| pins of "UART" connector	 |	pins of DHT22.2 |
+| --- | --- |
+|GND 				|	GND |
+|3V3 				|	VDD |
+|TX.6 				|	NC (not in function) |
+|RX.7 = D7 			|	SDA  |
+
+![Pin out of the expantionsboard](images/pinout-expansionboard.png)
+
+Modified picture, original taken from here: https://wiki.seeedstudio.com/Seeeduino-XIAO-Expansion-Board/#pinout-diagram
+
 # Setup and commissioning
 The outdoor sensor should be placed outside so that it can measure the air temperature and humidity of the outside air. A hanger is provided for this purpose.
 
