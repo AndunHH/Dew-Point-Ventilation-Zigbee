@@ -1,7 +1,8 @@
 # Dew-Point-Ventilation-Zigbee
 Dew Point Ventilation based on Zigbee with ESP32C6
 
-This repository contains the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter). A short overview is also given below.
+This repository contains the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter). The whole build is explained in german language (behind a paywall) at [heise.de](https://www.heise.de/ratgeber/Bastelprojekt-Taupunkt-Lueftung-mit-ZigBee-Funksteckdose-installieren-10300381.html)
+
 
 # Instructions for the dew point ventilator
 These instructions describe a dew point ventilation system. This system is used to measure the humidity of the air at two locations. If the air outside is drier in absolute terms than inside, a fan is switched on. 
@@ -13,6 +14,7 @@ The following picture shows the components schematically:
 The temperature is measured by an internal and external DHT22 sensor. The controll unit checks whether ventilation is useful and commands the socket via zigbee to turn on the fan for ventilation.
 
 The individual components inside the control unit are described in more detail in the following image:
+
 ![Components overview](images/controller-overview.svg)
 
 Check out the following 3d modelled parts:
@@ -41,30 +43,6 @@ You can use PlatformIO to flash the board with this fast steps.
 3. The project should be configured automatically.
 4. Click compile and upload -> Done
 
-# Electronic details
-The DHT sensors are connected as follows:
-
-### inner sensor
-
-| pins of "Analog" connector 	|	pins of DHT22.1|
-| --- | --- |
-| GND | 	GND |
-|3V3 				|	VDD |
-|N/A = A0 			|	NC (not in function) |
-|0 = D0 				|	SDA |
-
-
-### outer sensor
-| pins of "UART" connector	 |	pins of DHT22.2 |
-| --- | --- |
-|GND 				|	GND |
-|3V3 				|	VDD |
-|TX.6 				|	NC (not in function) |
-|RX.7 = D7 			|	SDA  |
-
-![Pin out of the expantionsboard](images/pinout-expansionboard.png)
-
-Modified picture, original taken from here: https://wiki.seeedstudio.com/Seeeduino-XIAO-Expansion-Board/#pinout-diagram
 
 # Setup and commissioning
 The outdoor sensor should be placed outside so that it can measure the air temperature and humidity of the outside air. A hanger is provided for this purpose.
@@ -98,6 +76,8 @@ The measured values of the sensors can be read on the display of the control uni
 2. Relative humidity in percent
 3. The dew point temperature in °C, which serves as a measure of the absolute humidity.
 4. Evaluation of the conditions. This indicates whether ventilation makes sense or why it does not.
+
+Internally, each measured value is averaged over 8 single measurements. The number of valid measurements in the FIFO is shown in the display in the second line, if the value is NOT equal to 8. Therefore, during initialization, a zero is shown here. Also a smaller value is shown here, if you have connection problems with the sensor.
 
 ![Overview of the measurement data](images/measurment-display.svg)
 
@@ -135,6 +115,32 @@ The visualization shows:
 
 A new zigbee device can be coupled for 180s after a reset of the controller. To delete old couplings a zigbee factory reset can be done with a long press on the boot button on the esp32c6.
 
+# Electronic details
+The DHT sensors are connected as follows:
+
+### inner sensor
+
+| pins of "Analog" connector 	|	pins of DHT22.1|
+| --- | --- |
+| GND | 	GND |
+|3V3 				|	VDD |
+|N/A = A0 			|	NC (not in function) |
+|0 = D0 				|	SDA |
+
+
+### outer sensor
+| pins of "UART" connector	 |	pins of DHT22.2 |
+| --- | --- |
+|GND 				|	GND |
+|3V3 				|	VDD |
+|TX.6 				|	NC (not in function) |
+|RX.7 = D7 			|	SDA  |
+
+![Pin out of the expantionsboard](images/pinout-expansionboard.png)
+
+Modified picture, original taken from here: https://wiki.seeedstudio.com/Seeeduino-XIAO-Expansion-Board/#pinout-diagram
+
+
 # Components
 | component | Approx. price |
 | --- | --- |
@@ -154,3 +160,19 @@ A new zigbee device can be coupled for 180s after a reset of the controller. To 
 Obviously, additionally required:
 
 - Bathroom fan
+
+# FAQ
+## The RTC seems not to work
+Try scrubbing the connection of the battery pad with a screw driver, as there may be some residue from the soldering process which prohibits good contact to the battery.
+
+## Can I ignore the messages "... not set as GPIO"?
+Yes, the gpio warning may be ignored.
+
+## What is "wifi.txt" needed for?
+This is not used now, but the idea is, that the system uses wifi to get a proper time stamp. Unfortunately, WiFi and zigbee is not working at the same time now.
+
+
+# Further Project ideas / Wanted features
+- Change general behavior of the button, to wake up the display at all or prolong the actual shown screen. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
+- Use one of the LEDs (e.g. the yellow one) to indicate that zigbee pairing is enabled. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
+- Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
