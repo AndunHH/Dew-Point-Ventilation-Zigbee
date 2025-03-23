@@ -29,6 +29,7 @@ public:
     boolean getCompilerDate();
     boolean createFileName();
     void createTimeStampDisp(char *dateDispStr, char *timeDispStr);
+    void createTimeStampDispShort(char *dateDispStr, char *timeDispStr);
     void createTimeStampLogging(char *logTimeStr);
     void getFileName(char * str);
 

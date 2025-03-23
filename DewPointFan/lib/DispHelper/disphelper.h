@@ -29,16 +29,18 @@ enum DispHelperState
 class DispHelper
 {
 public:
-    boolean init();
+    boolean init(char *versionStr);
 
     DispHelperState loop();
 
     void showVersion(boolean isSDpresent, bool isZigbeeReady);
     void showMode(ControlFanStates controlFanState);
 
-    void showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull);
+    void showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull, char* modeChar);
 
     void showTime(char *dateDispStr, char *timeDispStr);
+
+    void showTimeAndStatus(char *dateDispStr, char *timeDispStr, boolean isSDpresent, bool isZigbeeReady, char *versionStr, char *modeChar);
 
     void showZigBeeReset();
 

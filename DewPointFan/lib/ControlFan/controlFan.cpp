@@ -9,7 +9,7 @@ boolean ControlFan::init()
     controlFanState = CF_OFF;
     cntOnSeconds = 0;
     cntOffSeconds = 0;
-    return false; //don't start the fan
+    return false; // don't start the fan
 }
 
 /// @brief ControlFan function that is called regularly in loop(). It decides wether to turn on the fan or turn it off. It depends on the usersetpoint mode, which can be iterated by incremenetUserSetpoint().
@@ -112,6 +112,27 @@ ControlFanStates ControlFan::getUserSetpoint()
     return userSetpointState;
 }
 
+/// @brief get the single character for the chosen mode
+/// @param modeChar character to show
+void ControlFan::getModeCharacter(char *modeChar)
+{
+    switch (userSetpointState)
+    {
+    case CF_OFF:
+        snprintf(modeChar, 2, "0");
+        break;
+    case CF_AUTO:
+        snprintf(modeChar, 2, "A");
+        break;
+    case CF_ON:
+        snprintf(modeChar, 2, "1");
+        break;
+    default:
+        snprintf(modeChar, 2, "x");
+        break;
+    }
+}
+
 /// @brief increment the setpoint chosen by the user Off -> Auto -> On -> Off
 /// @return the new setpoint
 ControlFanStates ControlFan::incrementUserSetpoint()
@@ -153,6 +174,7 @@ void ControlFan::createLogChar(char *logCtrlStr)
 }
 
 /// @brief Reset the fan Run time. This is usefull, when the mode is switched manually to restart or stop the fan immediately.
-void ControlFan::resetFanRunTime() {
-        lastFanRunTime -= FanOFF_MS;
+void ControlFan::resetFanRunTime()
+{
+    lastFanRunTime -= FanOFF_MS;
 }

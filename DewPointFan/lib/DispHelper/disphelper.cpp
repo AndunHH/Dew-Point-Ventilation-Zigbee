@@ -5,8 +5,9 @@
 #include "disphelper.h"
 
 /// @brief initialize the display helper
+/// @param versionStr Version to display
 /// @return
-boolean DispHelper::init()
+boolean DispHelper::init(char *versionStr)
 {
 #ifdef DEBUGDISPHANDLING
     Serial.print("Initializing disp...");
@@ -16,7 +17,9 @@ boolean DispHelper::init()
 
     u8x8.setFont(u8x8_font_chroma48medium8_r);
     u8x8.setCursor(0, 0);
-    u8x8.print("Disp Init!");
+    u8x8.println("Disp Init!");
+    u8x8.println(" ");
+    u8x8.println(versionStr);
 
     dispState = DISP_TIME;
     return false;
@@ -34,7 +37,7 @@ DispHelperState DispHelper::loop()
 #ifdef DEBUGDISPHANDLING
         Serial.println("Disp INIT");
 #endif
-        init();
+        init("error"); // init should be already called outside!
         lastDispTime = now;
         break;
     case DISP_SPECIFIC:
@@ -65,12 +68,12 @@ DispHelperState DispHelper::loop()
     case DISP_TEMP:
         if (now - lastDispTime >= DispWaitTemperatureMS)
         {
-            showPage = DISP_VERSION;
+            showPage = DISP_TIME;
             lastDispTime = now;
-            dispState = DISP_VERSION;
+            dispState = DISP_TIME;
         }
         break;
-    case DISP_VERSION:
+    case DISP_VERSION: // not entered anymore
         if (now - lastDispTime >= DispWaitMS)
         {
             showPage = DISP_MODE;
@@ -78,7 +81,7 @@ DispHelperState DispHelper::loop()
             dispState = DISP_MODE;
         }
         break;
-    case DISP_MODE:
+    case DISP_MODE: // only entered, when button is pressed
         if (now - lastDispTime >= DispWaitMS)
         {
             showPage = DISP_TIME;
@@ -118,7 +121,7 @@ void DispHelper::showMode(ControlFanStates controlFanState)
     u8x8.println("Modus:");
     u8x8.println(" ");
     u8x8.setFont(u8x8_font_courB18_2x3_f); //
-    
+
     switch (controlFanState)
     {
     case CF_OFF:
@@ -134,8 +137,8 @@ void DispHelper::showMode(ControlFanStates controlFanState)
 }
 
 /// @brief Print additional infos on the display
-/// @param isSDpresent 
-/// @param isZigbeeReady 
+/// @param isSDpresent
+/// @param isZigbeeReady
 void DispHelper::showVersion(boolean isSDpresent, bool isZigbeeReady)
 {
     u8x8.clear();
@@ -163,12 +166,18 @@ void DispHelper::showVersion(boolean isSDpresent, bool isZigbeeReady)
     }
 }
 
-void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull)
+/// @brief Show the measurement values
+/// @param inner AvgMeasurement data for inner sensor
+/// @param outer AvgMeasurement data for outer sensor
+/// @param ventUseFull VentilationUseFull Enum to show info, if ventilation is usefull
+/// @param modeChar single character to show mode
+void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull, char* modeChar)
 {
     u8x8.clear();
     u8x8.setFont(u8x8_font_chroma48medium8_r);
     u8x8.setCursor(0, 0);
-    u8x8.println("    MESSWERTE   ");
+    u8x8.print(modeChar); // print the character showing the mode
+    u8x8.println("| MESSWERTE   ");
     u8x8.print(" Drin  | Aussen ");
     if (inner.validCnt != 8)
     {
@@ -255,6 +264,45 @@ void DispHelper::showTime(char *dateDispStr, char *timeDispStr)
     u8x8.println(" ");
     u8x8.setFont(u8x8_font_inr21_2x4_f); //
     u8x8.print(timeDispStr);
+}
+
+/// @brief Show Time and Status on the display
+/// @param dateDispStr actual date
+/// @param timeDispStr actual time
+/// @param isSDpresent is the sd card present?
+/// @param isZigbeeReady is zigbee ready?
+/// @param versionStr version number to show
+/// @param versionStr mode character to show
+void DispHelper::showTimeAndStatus(char *dateDispStr, char *timeDispStr, boolean isSDpresent, bool isZigbeeReady, char *versionStr, char *modeChar)
+{
+    u8x8.clear();
+    u8x8.setFont(u8x8_font_chroma48medium8_r);
+    u8x8.setCursor(0, 0);
+    u8x8.print(modeChar);
+    u8x8.print("| ");
+    u8x8.println(dateDispStr);
+    u8x8.setFont(u8x8_font_inr21_2x4_f); //
+    u8x8.print("  ");
+    u8x8.print(timeDispStr);
+    u8x8.setFont(u8x8_font_chroma48medium8_r);
+    u8x8.setCursor(0, 5);
+    if (isSDpresent)
+    {
+        u8x8.println("    SD: present");
+    }
+    else
+    {
+        u8x8.println("    SD: missing");
+    }
+    if (isZigbeeReady)
+    {
+        u8x8.println("Zigbee: ready");
+    }
+    else
+    {
+        u8x8.println("Zigbee: n/a");
+    }
+    u8x8.println(versionStr);
 }
 
 void DispHelper::showZigBeeReset()
