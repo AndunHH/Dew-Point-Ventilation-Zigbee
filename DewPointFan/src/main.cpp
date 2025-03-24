@@ -135,7 +135,8 @@ void loop()
   case DISP_TIME:
     controlFan.getModeCharacter(modeChar);
     rtcHelper.createTimeStampDispShort(dateDispStr, timeDispStr);
-    dispHelper.showTimeAndStatus(dateDispStr, timeDispStr, sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady(), versionStr, modeChar);
+
+    dispHelper.showTimeAndStatus(dateDispStr, timeDispStr, sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady(), versionStr, modeChar, turnFanOn);
     break;
   case DISP_VERSION:
     dispHelper.showVersion(sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady());
@@ -143,7 +144,7 @@ void loop()
   case DISP_TEMP:
     controlFan.getModeCharacter(modeChar);
     
-    dispHelper.showTemp(processSensorData.getAverageMeasurements(true), processSensorData.getAverageMeasurements(false), processSensorData.getVentilationUsefullStatus(),modeChar);
+    dispHelper.showTemp(processSensorData.getAverageMeasurements(true), processSensorData.getAverageMeasurements(false), processSensorData.getVentilationUsefullStatus(),modeChar, turnFanOn);
     break;
   case DISP_MODE:
     dispHelper.showMode(controlFan.getUserSetpoint());

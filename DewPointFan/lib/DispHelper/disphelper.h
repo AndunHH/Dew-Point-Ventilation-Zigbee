@@ -2,10 +2,10 @@
 #define DispWaitMS 4000
 
 // How long shall the temperature be shown?
-#define DispWaitTemperatureMS 10000
+#define DispWaitTemperatureMS 12000
 
 // if a specific display is shown -> how long?
-#define DispWaitSpecificMS 5000
+#define DispWaitSpecificMS 10000
 
 // print debug?
 #define DEBUGDISPHANDLING
@@ -36,11 +36,13 @@ public:
     void showVersion(boolean isSDpresent, bool isZigbeeReady);
     void showMode(ControlFanStates controlFanState);
 
-    void showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull, char* modeChar);
+    void showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull, char *modeChar, boolean isFanOn);
+
+    void printFanOnSymbol(boolean isFanOn);
 
     void showTime(char *dateDispStr, char *timeDispStr);
 
-    void showTimeAndStatus(char *dateDispStr, char *timeDispStr, boolean isSDpresent, bool isZigbeeReady, char *versionStr, char *modeChar);
+    void showTimeAndStatus(char *dateDispStr, char *timeDispStr, boolean isSDpresent, bool isZigbeeReady, char *versionStr, char *modeChar, boolean isFanOn);
 
     void showZigBeeReset();
 

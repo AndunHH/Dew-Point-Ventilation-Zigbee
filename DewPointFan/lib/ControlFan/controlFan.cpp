@@ -119,13 +119,13 @@ void ControlFan::getModeCharacter(char *modeChar)
     switch (userSetpointState)
     {
     case CF_OFF:
-        snprintf(modeChar, 2, "0");
+        snprintf(modeChar, 2, "O");
         break;
     case CF_AUTO:
         snprintf(modeChar, 2, "A");
         break;
     case CF_ON:
-        snprintf(modeChar, 2, "1");
+        snprintf(modeChar, 2, "I");
         break;
     default:
         snprintf(modeChar, 2, "x");
