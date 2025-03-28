@@ -270,6 +270,27 @@ void RTCHelper::createTimeStampDisp(char *dateDispStr, char *timeDispStr)
       now.second);
 }
 
+/// @brief Create timestamp strings for display. Short: without seconds
+/// @param dateDispStr [DATE_LENGTH] DD.MM.YYYY
+/// @param timeDispStr [TIME_LENGTH] hh:mm
+void RTCHelper::createTimeStampDispShort(char *dateDispStr, char *timeDispStr)
+{
+  RTC_Date now = rtc.getDateTime();
+  // dateDispStr DD.MM.YYYY
+  snprintf(
+      dateDispStr, DATE_LENGTH,
+      "%02d.%02d.%04d",
+      now.day,
+      now.month,
+      now.year);
+  // timeDispStr hh:mm:ss
+  snprintf(
+      timeDispStr, TIME_LENGTH,
+      "%02d:%02d",
+      now.hour,
+      now.minute);
+}
+
 /// @brief Create timestamp strings for sd logging
 /// @param logTimeStr  [TIMESTAMP_LENGTH] "YYYY-MM-DD hh:mm:ss" for sd data logging
 void RTCHelper::createTimeStampLogging(char *logTimeStr)

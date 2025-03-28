@@ -36,6 +36,7 @@ class ControlFan {
          void createLogChar(char *logStr);
 
          void resetFanRunTime();
+         void getModeCharacter(char* modeChar);
 
      private:
          ControlFanStates controlFanState;

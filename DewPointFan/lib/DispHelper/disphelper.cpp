@@ -5,8 +5,9 @@
 #include "disphelper.h"
 
 /// @brief initialize the display helper
+/// @param versionStr Version to display
 /// @return
-boolean DispHelper::init()
+boolean DispHelper::init(char *versionStr)
 {
 #ifdef DEBUGDISPHANDLING
     Serial.print("Initializing disp...");
@@ -16,8 +17,12 @@ boolean DispHelper::init()
 
     u8x8.setFont(u8x8_font_chroma48medium8_r);
     u8x8.setCursor(0, 0);
-    u8x8.print("Disp Init!");
-
+    u8x8.print("TAUPUNKT LUEFTER");
+    u8x8.setCursor(0, 3);
+    u8x8.println("init ... ");
+    u8x8.setCursor(0, 6);
+    u8x8.println(versionStr);
+    lastDispTime = millis();
     dispState = DISP_TIME;
     return false;
 }
@@ -31,11 +36,14 @@ DispHelperState DispHelper::loop()
     switch (dispState)
     {
     case DISP_INIT:
-#ifdef DEBUGDISPHANDLING
-        Serial.println("Disp INIT");
-#endif
-        init();
-        lastDispTime = now;
+        // init is shown as a regular screen
+        if (now - lastDispTime >= DispWaitMS)
+        {
+            // enough off showing time, show next screen
+            showPage = DISP_TEMP;
+            lastDispTime = now;
+            dispState = DISP_TEMP;
+        }
         break;
     case DISP_SPECIFIC:
         // show the specificly set display state
@@ -65,12 +73,12 @@ DispHelperState DispHelper::loop()
     case DISP_TEMP:
         if (now - lastDispTime >= DispWaitTemperatureMS)
         {
-            showPage = DISP_VERSION;
+            showPage = DISP_TIME;
             lastDispTime = now;
-            dispState = DISP_VERSION;
+            dispState = DISP_TIME;
         }
         break;
-    case DISP_VERSION:
+    case DISP_VERSION: // not entered anymore
         if (now - lastDispTime >= DispWaitMS)
         {
             showPage = DISP_MODE;
@@ -78,7 +86,7 @@ DispHelperState DispHelper::loop()
             dispState = DISP_MODE;
         }
         break;
-    case DISP_MODE:
+    case DISP_MODE: // only entered, when button is pressed
         if (now - lastDispTime >= DispWaitMS)
         {
             showPage = DISP_TIME;
@@ -118,7 +126,7 @@ void DispHelper::showMode(ControlFanStates controlFanState)
     u8x8.println("Modus:");
     u8x8.println(" ");
     u8x8.setFont(u8x8_font_courB18_2x3_f); //
-    
+
     switch (controlFanState)
     {
     case CF_OFF:
@@ -134,8 +142,8 @@ void DispHelper::showMode(ControlFanStates controlFanState)
 }
 
 /// @brief Print additional infos on the display
-/// @param isSDpresent 
-/// @param isZigbeeReady 
+/// @param isSDpresent
+/// @param isZigbeeReady
 void DispHelper::showVersion(boolean isSDpresent, bool isZigbeeReady)
 {
     u8x8.clear();
@@ -163,12 +171,20 @@ void DispHelper::showVersion(boolean isSDpresent, bool isZigbeeReady)
     }
 }
 
-void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull)
+/// @brief Show the measurement values
+/// @param inner AvgMeasurement data for inner sensor
+/// @param outer AvgMeasurement data for outer sensor
+/// @param ventUseFull VentilationUseFull Enum to show info, if ventilation is usefull
+/// @param modeChar single character to show mode
+/// @param isFanOn indicate if fan should actually run at the moment
+void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull, char *modeChar, boolean isFanOn)
 {
     u8x8.clear();
     u8x8.setFont(u8x8_font_chroma48medium8_r);
     u8x8.setCursor(0, 0);
-    u8x8.println("    MESSWERTE   ");
+    u8x8.print(modeChar); // print the character showing the mode
+    u8x8.print("   MESSWERTE");
+    printFanOnSymbol(isFanOn);
     u8x8.print(" Drin  | Aussen ");
     if (inner.validCnt != 8)
     {
@@ -181,30 +197,40 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, Ventilatio
         u8x8.print(outer.validCnt);
     }
 
+    #define LENGTHNUMBER 6
+    char fixedPoint[LENGTHNUMBER] = "+12.2"; // placeholder to fill with characters
+    #define PRINTFORMAT "%4.1f"
+
     u8x8.setCursor(0, 2);
     u8x8.print("T:");
-    u8x8.print(inner.temperature, 1);
-    u8x8.setCursor(6, 2);
-    u8x8.print(" | ");
-    u8x8.print(outer.temperature, 1);
+    snprintf(fixedPoint,LENGTHNUMBER,PRINTFORMAT,inner.temperature);
+    u8x8.print(fixedPoint);
+    u8x8.setCursor(7, 2);
+    u8x8.print("| ");
+    snprintf(fixedPoint,LENGTHNUMBER,PRINTFORMAT,outer.temperature);
+    u8x8.print(fixedPoint);
     u8x8.setCursor(15, 2);
     u8x8.print("C");
 
     u8x8.setCursor(0, 3);
     u8x8.print("H:");
-    u8x8.print(inner.humidity, 1);
-    u8x8.setCursor(6, 3);
-    u8x8.print(" | ");
-    u8x8.print(outer.humidity, 1);
+    snprintf(fixedPoint,LENGTHNUMBER,PRINTFORMAT,inner.humidity);
+    u8x8.print(fixedPoint);
+    u8x8.setCursor(7, 3);
+    u8x8.print("| ");
+    snprintf(fixedPoint,LENGTHNUMBER,PRINTFORMAT,outer.humidity);
+    u8x8.print(fixedPoint);
     u8x8.setCursor(15, 3);
     u8x8.print("%");
 
     u8x8.setCursor(0, 4);
     u8x8.print("D:");
-    u8x8.print(inner.dewPoint, 1);
-    u8x8.setCursor(6, 4);
-    u8x8.print(" | ");
-    u8x8.print(outer.dewPoint, 1);
+    snprintf(fixedPoint,LENGTHNUMBER,PRINTFORMAT,inner.dewPoint);
+    u8x8.print(fixedPoint);
+    u8x8.setCursor(7, 4);
+    u8x8.print("| ");
+    snprintf(fixedPoint,LENGTHNUMBER,PRINTFORMAT,outer.dewPoint);
+    u8x8.print(fixedPoint);
     u8x8.setCursor(15, 4);
     u8x8.print("C");
 
@@ -245,6 +271,22 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, Ventilatio
     }
 }
 
+/// @brief print a symbol, if the fan is actually running
+/// @param isFanOn true, if fan should actually run
+void DispHelper::printFanOnSymbol(boolean isFanOn)
+{
+    u8x8.setCursor(15, 0);
+    if (isFanOn)
+    {
+        u8x8.print("+");
+    }
+    else
+    {
+        u8x8.print("_");
+    }
+    u8x8.setCursor(0, 1);
+}
+
 void DispHelper::showTime(char *dateDispStr, char *timeDispStr)
 {
     u8x8.clear();
@@ -255,6 +297,47 @@ void DispHelper::showTime(char *dateDispStr, char *timeDispStr)
     u8x8.println(" ");
     u8x8.setFont(u8x8_font_inr21_2x4_f); //
     u8x8.print(timeDispStr);
+}
+
+/// @brief Show Time and Status on the display
+/// @param dateDispStr actual date
+/// @param timeDispStr actual time
+/// @param isSDpresent is the sd card present?
+/// @param isZigbeeReady is zigbee ready?
+/// @param versionStr version number to show
+/// @param versionStr mode character to show
+/// @param isFanOn indicate if fan should actually run at the moment
+void DispHelper::showTimeAndStatus(char *dateDispStr, char *timeDispStr, boolean isSDpresent, bool isZigbeeReady, char *versionStr, char *modeChar, boolean isFanOn)
+{
+    u8x8.clear();
+    u8x8.setFont(u8x8_font_chroma48medium8_r);
+    u8x8.setCursor(0, 0);
+    u8x8.print(modeChar); // print the character showing the mode
+    u8x8.print("  ");
+    u8x8.print(dateDispStr);
+    printFanOnSymbol(isFanOn);
+    u8x8.print("   ");
+    u8x8.setFont(u8x8_font_inr21_2x4_f);
+    u8x8.print(timeDispStr);
+    u8x8.setFont(u8x8_font_chroma48medium8_r);
+    u8x8.setCursor(0, 5);
+    if (isSDpresent)
+    {
+        u8x8.println("    SD: present");
+    }
+    else
+    {
+        u8x8.println("    SD: missing");
+    }
+    if (isZigbeeReady)
+    {
+        u8x8.println("Zigbee: ready");
+    }
+    else
+    {
+        u8x8.println("Zigbee: n/a");
+    }
+    u8x8.println(versionStr);
 }
 
 void DispHelper::showZigBeeReset()
