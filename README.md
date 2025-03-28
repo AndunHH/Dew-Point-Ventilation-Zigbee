@@ -79,7 +79,9 @@ The measured values of the sensors can be read on the display of the control uni
 
 Internally, each measured value is averaged over 8 single measurements. The number of valid measurements in the FIFO is shown in the display in the second line, if the value is NOT equal to 8. Therefore, during initialization, a zero is shown here. Also a smaller value is shown here, if you have connection problems with the sensor.
 
-![Overview of the measurement data](images/measurment-display.svg)
+Additionally, the fan state and mode is shown in the upper left corners in all screens.
+
+![Overview of the measurement data](images/screen-measurements.jpg)
 
 # Off, on and automatic mode
 
