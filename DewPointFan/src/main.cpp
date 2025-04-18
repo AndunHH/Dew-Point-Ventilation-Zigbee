@@ -54,10 +54,7 @@ char dateDispStr[DATE_LENGTH] = "31.12.2024";
 char timeDispStr[TIME_LENGTH] = "10:10:10";
 char modeChar[2] = "m";  // active mode "0", "1", or "A" for auto
 
-/* TODO List:
-- Reset the whole controller once per day?
-- showing in the display, if no plug is bound at all
-*/
+
 
 void setup()
 {
@@ -166,6 +163,13 @@ void loop()
   if (now - lastdebugTime >= 2000)
   {
     lastdebugTime = now;
+
+    // If no valid data was present for 30s restart!
+    // move away from this debug section!
+    if(processSensorData.timeSinceAllDataWhereValid() > 30000) {
+      Serial.println("restarting!");
+      ESP.restart();
+    }
 
     /*Serial.print(dateDispStr);
     Serial.print(" ");

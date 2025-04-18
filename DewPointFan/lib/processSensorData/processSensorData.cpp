@@ -10,6 +10,9 @@ bool ProcessSensorData::init()
   dhtI.setup(DHTPINI, DHTesp::DHT22);
   // Initialize temperature sensor 2
   dhtO.setup(DHTPINO, DHTesp::DHT22);
+  // allow the system to gather valid data and therefore assume that initally valid data may be given
+  timeLastValidDataI_ms = millis();
+  timeLastValidDataO_ms = timeLastValidDataI_ms;
   delayMS = 2000;
   return true;
 }
@@ -52,8 +55,13 @@ void ProcessSensorData::loop()
     }
     break;
   case CALC:
-    calculateAverage(&bufI, &avgMeasurementI);
-    calculateAverage(&bufO, &avgMeasurementO);
+    if (calculateAverage(&bufI, &avgMeasurementI)) {
+      // if at least one valid data package is valid in the buffer, the timer to check for valid data at all is reset.
+      timeLastValidDataI_ms = now;
+    }
+    if (calculateAverage(&bufO, &avgMeasurementO)) {
+      timeLastValidDataO_ms = now;
+    }
     calcNewVentilationStartUseFull();
     processSensorDataStates = READO;
     break;
@@ -263,4 +271,18 @@ void ProcessSensorData::createLogChar(char *logStr)
       avgMeasurementO.dewPoint,
       avgMeasurementI.validCnt,
       avgMeasurementO.validCnt);
+}
+
+/// @brief Returns the duration when the last valid data packages for both sensors where in the buffer
+/// @return duration in ms
+uint32_t ProcessSensorData::timeSinceAllDataWhereValid() {
+  uint32_t now = millis();
+/*  Serial.print("Duration i: ");
+  Serial.print(now - timeLastValidDataI_ms);
+  Serial.println("");
+  Serial.print("Duration o: ");
+  Serial.print(now - timeLastValidDataO_ms);
+  Serial.println("");
+*/
+  return max(now - timeLastValidDataO_ms, now - timeLastValidDataI_ms);
 }
