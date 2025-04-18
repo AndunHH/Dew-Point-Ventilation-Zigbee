@@ -123,7 +123,7 @@ The visualization shows:
       1. Choose "Python Environments"
       2. Choose "+ Create Python Environment"
       3. Choose "venv"
-      4. If already one exists ((???)): "Delete and Recreate"
+      4. If already one exists: "Delete and Recreate"
       5. Chosse the global python interpreter. This one is marked at the end of line with the blue colored word "Global".
       6. Select dependencies "Visualization/requirements.txt" and click ok.
    4. Wait until the packages are installed.
