@@ -113,6 +113,24 @@ The visualization shows:
 
 ![example of the evaluated picture](images/2024-05.png)
 
+## How get the visualization running
+1. Install VScode extensions: Jupyter and Python and restart vscode.
+2. Open the Jupyter Notebook "Dewpoint-Visualization.ipynb" in vscode.
+3. Handle Python kernel and environment as follows:
+   1. Click in the upper right corner to open the "Select Kernel" dialog. This can also be done by opening all comands with ctrl + shift + p and type > select kernel.
+   2. Look at the top center of the VSC-window.
+   3. If you have an already working ".venv"-kernel, choose it an go to step 3.4.. Otherwhise click on "select another kernel"
+      1. Choose "Python Environments"
+      2. Choose "+ Create Python Environment"
+      3. Choose "venv"
+      4. If already one exists: "Delete and Recreate"
+      5. Chosse the global python interpreter. This one is marked at the end of line with the blue colored word "Global".
+      6. Select dependencies "Visualization/requirements.txt" and click ok.
+   4. Wait until the packages are installed.
+4. Use the "Run all" Button in the Jupyter Notebook.
+5. After a short time you will be prompted for the csv-file with logged data. If no prompt seems to appear look at the task bar. Here could blink the Python-icon. Click on it and choose path and csv-file with logged data.
+6. After a moment scroll down. At the end of the page you will find the plotted charts.
+
 # Coupling a new socket outlet
 
 A new zigbee device can be coupled for 180s after a reset of the controller. To delete old couplings a zigbee factory reset can be done with a long press on the boot button on the esp32c6.
