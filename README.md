@@ -175,7 +175,9 @@ This is not used now, but the idea is, that the system uses wifi to get a proper
 
 
 # Further Project ideas / Wanted features
-- Change general behavior of the button, to wake up the display at all or prolong the actual shown screen. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
-- Use one of the LEDs (e.g. the yellow one) to indicate that zigbee pairing is enabled. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
-- Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
-- Implement a switchover between standard and daylight saving time. See [issue #10](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/10)
+1. Change general behavior of the button, to wake up the display at all or prolong the actual shown screen. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
+2. Use one of the LEDs (e.g. the yellow one) to indicate that zigbee pairing is enabled. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
+3. Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
+4. Implement a switchover between standard and daylight saving time. See [issue #10](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/10)
+5. Reset the whole controller once per day?
+6. showing in the display, if no plug is bound at all.
