@@ -127,6 +127,7 @@ The visualization shows:
       5. Chosse the global python interpreter. This one is marked at the end of line with the blue colored word "Global".
       6. Select dependencies "Visualization/requirements.txt" and click ok.
    4. Wait until the packages are installed.
+   5. Save file <Dewpoint-Visualisation.ipynb> manually.
 4. Use the "Run all" Button in the Jupyter Notebook.
 5. After a short time you will be prompted for the csv-file with logged data. If no prompt seems to appear look at the task bar. Here could blink the Python-icon. Click on it and choose path and csv-file with logged data.
 6. After a moment scroll down. At the end of the page you will find the plotted charts.
@@ -193,7 +194,12 @@ This is not used now, but the idea is, that the system uses wifi to get a proper
 
 
 # Further Project ideas / Wanted features
+## Controller
+
 - Change general behavior of the button, to wake up the display at all or prolong the actual shown screen. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
 - Use one of the LEDs (e.g. the yellow one) to indicate that zigbee pairing is enabled. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
 - Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
 - Implement a switchover between standard and daylight saving time. See [issue #10](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/10)
+
+## Visualization
+- Simplify the visualization script massively so it can be run by any non-nerd or DAU how has only a PC and the sd card.
