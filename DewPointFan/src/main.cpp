@@ -164,12 +164,13 @@ void loop()
   {
     lastdebugTime = now;
 
+    /*
     // If no valid data was present for 30s restart!
     // move away from this debug section!
     if(processSensorData.timeSinceAllDataWhereValid() > 30000) {
       Serial.println("restarting!");
       ESP.restart();
-    }
+    }*/
 
     /*Serial.print(dateDispStr);
     Serial.print(" ");
