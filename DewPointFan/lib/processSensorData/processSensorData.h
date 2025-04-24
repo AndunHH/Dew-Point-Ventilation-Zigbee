@@ -39,7 +39,9 @@ class ProcessSensorData {
             condTempOmin_degC(TEMP_O_MIN),
             condDewPointImin_degC(DEWPOINT_I_MIN),
             condDewPointDiffmin_K(DELTAP),
-            ventilationUseFull(NODATA)
+            ventilationUseFull(NODATA),
+            timeLastValidDataI_ms(0),
+            timeLastValidDataO_ms(0)
             {}
 
         void printBuffer();
@@ -49,6 +51,8 @@ class ProcessSensorData {
         boolean isVentilationUsefullStatus();
         void printStatus();
         void createLogChar(char* logStr);
+
+        uint32_t timeSinceAllDataWhereValid();
 
     private:
         VentilationUseFull ventilationUseFull;
@@ -73,4 +77,9 @@ class ProcessSensorData {
         /// @brief store the averaged measurements 
         AvgMeasurement avgMeasurementI;
         AvgMeasurement avgMeasurementO;
+
+        /// @brief store the time in ms since the last valid data arrived
+        uint32_t timeLastValidDataI_ms;
+        uint32_t timeLastValidDataO_ms;
+
 };
