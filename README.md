@@ -200,6 +200,8 @@ This is not used now, but the idea is, that the system uses wifi to get a proper
 - Use one of the LEDs (e.g. the yellow one) to indicate that zigbee pairing is enabled. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
 - Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
 - Implement a switchover between standard and daylight saving time. See [issue #10](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/10)
+- Reset the whole controller once per day or if data are missing? Check `processSensorData.timeSinceAllDataWhereValid()`
+- Show in the display, if no plug is bound at all.
 
 ## Visualization
-- Simplify the visualization script massively so it can be run by any non-nerd or DAU how has only a PC and the sd card.
+- Simplify the visualization script massively so it can be run by any non-nerd or "DAU" who has only a PC and the sd card.
