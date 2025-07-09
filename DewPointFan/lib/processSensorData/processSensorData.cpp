@@ -151,12 +151,25 @@ AvgMeasurement ProcessSensorData::getAverageMeasurements(boolean inner)
 /// @return true if starting ventilation is usefull
 boolean ProcessSensorData::calcNewVentilationStartUseFull()
 {
-  if (avgMeasurementI.validCnt < 1 || avgMeasurementO.validCnt < 1)
+  // both sensors invalid?
+  if (avgMeasurementI.validCnt < 1 && avgMeasurementO.validCnt < 1)
   {
-    // no valid values? don't ventilate
     ventilationUseFull = NODATA;
     return false;
   }
+  // inner sensor invalid?
+  if ((avgMeasurementI.validCnt < 1) && (avgMeasurementO.validCnt >= 1))
+  {
+    ventilationUseFull = NODATAINDOOR;
+    return false;
+  }
+  // outer sensor invalid?
+  if ((avgMeasurementI.validCnt >= 1) && (avgMeasurementO.validCnt < 1))
+  {
+    ventilationUseFull = NODATAOUTDOOR;
+    return false;
+  }
+
   if (avgMeasurementI.temperature < condTempImin_degC)
   {
     // to cold inside!
@@ -235,7 +248,13 @@ void ProcessSensorData::printStatus()
   case NODATA:
     Serial.println("No valid data");
     break;
-  case TOOCOLDINSIDE:
+  case NODATAINDOOR:
+    Serial.println("No valid data from Indoor sensor");
+    break;
+   case NODATAOUTDOOR:
+    Serial.println("No valid data from Outdoor sensor");
+    break;
+ case TOOCOLDINSIDE:
     Serial.println("Too cold inside");
     break;
   case TOOCOLDOUTSIDE:

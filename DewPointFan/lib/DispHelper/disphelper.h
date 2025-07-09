@@ -33,7 +33,7 @@ public:
 
     DispHelperState loop();
 
-    void showVersion(boolean isSDpresent, bool isZigbeeReady);
+    void showVersion(boolean isSDpresent, bool isZigbeeReady, char *versionStr);
     void showMode(ControlFanStates controlFanState);
 
     void showTemp(AvgMeasurement inner, AvgMeasurement outer, VentilationUseFull ventUseFull, char *modeChar, boolean isFanOn);
