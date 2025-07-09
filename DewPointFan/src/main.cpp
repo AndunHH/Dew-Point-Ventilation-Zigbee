@@ -46,12 +46,12 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data)
 }
 
 char versionStr[10] = "Version 2"; // Todo: find a cleaner way to track the 
-char tmpFileName[RTC_FILENAMELENGTH] = "/2024-12.csv";
+char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
-char timestamp[TIMESTAMP_LENGTH] = "2024-12-31 10:10:10";
-char dateDispStr[DATE_LENGTH] = "31.12.2024";
-char timeDispStr[TIME_LENGTH] = "10:10:10";
+char timestamp[TIMESTAMP_LENGTH] = "2025-06-25 20:01:10";
+char dateDispStr[DATE_LENGTH] = "25.06.2025";
+char timeDispStr[TIME_LENGTH] = "20:01:10";
 char modeChar[2] = "m";  // active mode "0", "1", or "A" for auto
 
 

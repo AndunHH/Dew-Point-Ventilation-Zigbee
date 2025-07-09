@@ -246,6 +246,14 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer, Ventilatio
         u8x8.setCursor(0, 6);
         u8x8.print("Keine Sensoren");
         break;
+    case NODATAINDOOR:
+        u8x8.setCursor(0, 6);
+        u8x8.print("Innen-S. fehlt");
+        break;
+    case NODATAOUTDOOR:
+        u8x8.setCursor(0, 6);
+        u8x8.print("Aussen-S.fehlt");
+        break;
     case TOOCOLDINSIDE:
         u8x8.setCursor(0, 6);
         u8x8.print("Drin zu kalt");
