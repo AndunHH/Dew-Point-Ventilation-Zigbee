@@ -45,7 +45,7 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data)
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Version 2"; // Todo: find a cleaner way to track the 
+char versionStr[10] = "Version 3"; // Todo: find a cleaner way to track the 
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
@@ -136,7 +136,7 @@ void loop()
     dispHelper.showTimeAndStatus(dateDispStr, timeDispStr, sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady(), versionStr, modeChar, turnFanOn);
     break;
   case DISP_VERSION:
-    dispHelper.showVersion(sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady());
+    dispHelper.showVersion(sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady(), versionStr);
     break;
   case DISP_TEMP:
     controlFan.getModeCharacter(modeChar);

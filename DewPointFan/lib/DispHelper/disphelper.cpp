@@ -144,12 +144,13 @@ void DispHelper::showMode(ControlFanStates controlFanState)
 /// @brief Print additional infos on the display
 /// @param isSDpresent
 /// @param isZigbeeReady
-void DispHelper::showVersion(boolean isSDpresent, bool isZigbeeReady)
+/// @param versionStr version number to show
+void DispHelper::showVersion(boolean isSDpresent, bool isZigbeeReady, char *versionStr)
 {
     u8x8.clear();
     u8x8.setFont(u8x8_font_chroma48medium8_r); //
     u8x8.setCursor(0, 0);
-    u8x8.println("Version 1");
+    u8x8.println(versionStr);
     // TODO: find a better way to create, track and show a version number over the whole repo.
     u8x8.println(" ");
     if (isSDpresent)
@@ -313,7 +314,7 @@ void DispHelper::showTime(char *dateDispStr, char *timeDispStr)
 /// @param isSDpresent is the sd card present?
 /// @param isZigbeeReady is zigbee ready?
 /// @param versionStr version number to show
-/// @param versionStr mode character to show
+/// @param modeChar mode character to show
 /// @param isFanOn indicate if fan should actually run at the moment
 void DispHelper::showTimeAndStatus(char *dateDispStr, char *timeDispStr, boolean isSDpresent, bool isZigbeeReady, char *versionStr, char *modeChar, boolean isFanOn)
 {
