@@ -151,20 +151,25 @@ AvgMeasurement ProcessSensorData::getAverageMeasurements(boolean inner)
 /// @return true if starting ventilation is usefull
 boolean ProcessSensorData::calcNewVentilationStartUseFull()
 {
-  if (avgMeasurementI.validCnt < 1 || avgMeasurementO.validCnt < 1)
+  // both sensors invalid?
+  if (avgMeasurementI.validCnt < 1 && avgMeasurementO.validCnt < 1)
   {
-    // no valid values? don't ventilate
-    if ((avgMeasurementI.validCnt < 1) && (avgMeasurementO.validCnt >= 1))
-      ventilationUseFull = NODATAINDOOR;
-      return false;
-
-    if ((avgMeasurementI.validCnt >= 1) && (avgMeasurementO.validCnt < 1))
-      ventilationUseFull = NODATAOUTDOOR;
-      return false;
-
     ventilationUseFull = NODATA;
     return false;
   }
+  // inner sensor invalid?
+  if ((avgMeasurementI.validCnt < 1) && (avgMeasurementO.validCnt >= 1))
+  {
+    ventilationUseFull = NODATAINDOOR;
+    return false;
+  }
+  // outer sensor invalid?
+  if ((avgMeasurementI.validCnt >= 1) && (avgMeasurementO.validCnt < 1))
+  {
+    ventilationUseFull = NODATAOUTDOOR;
+    return false;
+  }
+
   if (avgMeasurementI.temperature < condTempImin_degC)
   {
     // to cold inside!
