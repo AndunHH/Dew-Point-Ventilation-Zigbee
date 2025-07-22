@@ -16,16 +16,14 @@
 
         canvas {
             display: block;
-            width: 100%;
-            max-width: 1120px;
-            height: 250px;
+            width: 90%;
             margin: 20px auto;
         }
     </style>
 </head>
 
 <body>
-    <h1>Upload CSV File</h1>
+    <h1>Visualization of Temperature, Relative Humidity and Dewpoint</h1>
 
     <div id="controls">
         <input type="file" id="csvFileInput" accept=".csv" />
@@ -45,6 +43,7 @@
     <script>
         const CSV_DELIMITER = ';';
         const charts = [];
+        monthStr = '2000-01';
 
         function cleanLine(line) {
             line = line.replace(/[^\x20-\x7E]/g, '').trim();
@@ -66,20 +65,22 @@
             ).join('\n');
         }
 
-        function createChart(ctx, datasets, title, yLabel, fillCallback = null) {
+        function createChart(ctx, datasets, title, yLabel, fillCallback = null, showX = true) {
             const chart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets },
                 options: {
                     responsive: false,
-                    maintainAspectRatio: false,
+                    aspectRatio: 4,
                     interaction: { mode: 'x', intersect: false },
+                    elements: {point: { radius: 1}},
                     plugins: {
-                        legend: { display: true },
-                        title: { display: true, text: title },
+                        legend: { display: true, position: 'right' },
+                        title: { display: true, text: title + ' '+monthStr },
                         zoom: {
-                            pan: { enabled: true, mode: 'x' },
-                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
+                            pan: { enabled: true, mode: 'x', onPan: ({ chart }) => syncZoom(chart)  },
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', 
+                                onZoom: ({ chart }) => syncZoom(chart) }
                         }
                     },
                     scales: {
@@ -87,15 +88,13 @@
                             type: 'time',
                             time: { unit: 'day', displayFormats: { day: 'dd.MM' } },
                             ticks: {
-                                autoSkip: false,
-                                callback: function (value, index) {
-                                    return index % 7 === 0 ? this.getLabelForValue(value) : '';
-                                }
+                                display: true,
+                                autoSkip: true,
                             },
                             grid: { display: true }
                         },
                         y: {
-                            title: { display: true, text: yLabel },
+                            title: { display: true, text: yLabel},
                             grid: { display: true }
                         }
                     }
@@ -144,7 +143,6 @@
 
         function plotAll(data) {
             const dates = data.map(row => new Date(row['Date']));
-
             createChart(
                 document.getElementById('tempChart'),
                 [
@@ -163,8 +161,9 @@
                         tension: 0.1
                     }
                 ],
-                'Inner and Outer Temperature',
-                'Temperature (°C)'
+                'Temperature',
+                'Temperature (°C)',
+                false
             );
 
             createChart(
@@ -185,7 +184,7 @@
                         tension: 0.1
                     }
                 ],
-                'Inner and Outer Humidity',
+                'Humidity',
                 'Humidity (%)'
             );
 
@@ -212,15 +211,10 @@
                         hidden: true
                     }
                 ],
-                'Inner and Outer Dew Point',
+                'Dew Point',
                 'Dew Point (°C)',
                 true
             );
-
-            charts.forEach(chart => {
-                chart.options.plugins.zoom.onZoom = ({ chart }) => syncZoom(chart);
-                chart.options.plugins.zoom.onPan = ({ chart }) => syncZoom(chart);
-            });
         }
 
         document.getElementById('csvFileInput').addEventListener('change', function (e) {
@@ -261,7 +255,8 @@
                             alert('No valid data found.');
                             return;
                         }
-                        console.log(data);
+                        monthStr = data[1]['Date'].substring(0, 7);
+
                         plotAll(data);
                     },
                     error: function (err) {
@@ -287,6 +282,8 @@
             exportCanvas.width = width;
             exportCanvas.height = height;
             const ctx = exportCanvas.getContext('2d');
+            ctx.fillStyle = "#FFF";
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
             let offsetY = 0;
             canvasList.forEach(canvas => {
@@ -295,8 +292,8 @@
             });
 
             const link = document.createElement('a');
-            link.download = 'climate_charts.png';
-            link.href = exportCanvas.toDataURL('image/png');
+            link.download = monthStr + '.jpg';
+            link.href = exportCanvas.toDataURL('image/jpg');
             link.click();
         });
 
