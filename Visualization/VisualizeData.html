@@ -24,11 +24,10 @@
 
 <body>
     <h1>Visualization of Temperature, Relative Humidity and Dewpoint</h1>
-    <p>This visualization is part of the Dewpoint Ventilation project hosted at <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>.</p>
-    <p>The introduction to the page can be read <a href="../">here</a>.</p>
-
+    <p>This visualization is part of the Dewpoint Ventilation project hosted at <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>. The introduction to the page can be read <a href="../">here</a>.</p>
+<p>Please select a file from your sd-card to visualize the climate data of one month. The file will be processed locally in your browser and NOT uploaded to the internet. You can than zoom into the data or download a picture of it.</p>
     <div id="CSVInputControls">
-        Please select a .csv file to visualize:
+        Please select a .csv file:
         <input type="file" id="csvFileInput" accept=".csv" />
     </div>
 
@@ -48,6 +47,9 @@
         const CSV_DELIMITER = ';';
         const charts = [];
         monthStr = '2000-01';
+        monthLongStr = 'Month Year';
+        fileNameWOext = '2000-01';
+        ResultTextRaw = 'Fan was running temp...';
 
         function cleanLine(line) {
             line = line.replace(/[^\x20-\x7E]/g, '').trim();
@@ -173,6 +175,7 @@
             var totalOnTime_s = locMaxs.reduce((accumulator, currentValue) => {
                 return accumulator + currentValue
             },0);
+
             totalOnTime_min = Math.floor(totalOnTime_s/60,0); 
             totalOnTime_h = Math.floor(totalOnTime_min/60,0);
             // how many minutes left:
@@ -180,8 +183,9 @@
             //console.log(totalOnTime_s);
             //console.log(totalOnTime_h);
             //console.log(totalOnTime_h_min);
-            document.getElementById('ResultText').innerHTML = '<p>In ' + interestingDate.getFullYear() + '-' + 
-                interestingDate.getMonth() + ' Fan was running: ' + totalOnTime_h.toString() + ':' + totalOnTime_h_min.toString() + ' hours:min.</p>';
+            
+            ResultTextRaw =  'In ' + monthLongStr + ' the fan was running for ' + totalOnTime_h.toString() + ' hours and ' + totalOnTime_h_min.toString() + ' minutes.';
+            document.getElementById('ResultText').innerHTML = '<p>'+  ResultTextRaw + '</p>';
         }
 
         function plotAll(data) {
@@ -190,14 +194,14 @@
                 document.getElementById('tempChart'),
                 [
                     {
-                        label: 'Temperature T_i',
+                        label: 'Temperature inside',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Temperature T_o',
+                        label: 'Temperature outside',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -263,7 +267,10 @@
         document.getElementById('csvFileInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (!file) return;
-
+            fileNameWext = e.target.files[0].name;
+            tmp = fileNameWext.split('.');
+            fileNameWOext = tmp[0];
+            console.log(fileNameWOext);
 
             // Hide upload, show reset + download
             document.getElementById('CSVInputControls').style.display = 'none';
@@ -300,7 +307,12 @@
                         }                      
 
                         interestingDate = new Date(data[1]['Date']);
-                        monthStr = interestingDate.getFullYear() + '-' + interestingDate.getMonth();
+                        //console.log(data[1]['Date']);
+                        //console.log(interestingDate);
+                        //console.log(new Intl.DateTimeFormat("en-US", { month: "long" }).format(interestingDate));
+
+                        monthStr = interestingDate.getFullYear() + '-' + (interestingDate.getMonth() + 1); // getMonth() is zero based
+                        monthLongStr = new Intl.DateTimeFormat("en-US", { month: "long" }).format(interestingDate) + ' ' + interestingDate.getFullYear();
                         //console.log(interestingDate.getFullYear());    
                         //console.log(interestingDate.getMonth());    
 
@@ -327,7 +339,7 @@
             const canvasList = ['tempChart', 'humidityChart', 'dewChart'].map(id => document.getElementById(id));
             const exportCanvas = document.createElement('canvas');
             const width = canvasList[0].width;
-            const height = canvasList.reduce((sum, c) => sum + c.height, 0);
+            const height = canvasList.reduce((sum, c) => sum + c.height, 0)+30; // additional pixel for ResultText
             exportCanvas.width = width;
             exportCanvas.height = height;
             const ctx = exportCanvas.getContext('2d');
@@ -340,8 +352,12 @@
                 offsetY += canvas.height;
             });
 
+            ctx.font = "14px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText(ResultTextRaw,5,offsetY+10);
+
             const link = document.createElement('a');
-            link.download = monthStr + '.jpg';
+            link.download = fileNameWOext + '.jpg';
             link.href = exportCanvas.toDataURL('image/jpg');
             link.click();
         });
