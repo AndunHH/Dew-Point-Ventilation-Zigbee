@@ -34,6 +34,7 @@
 
     <div style="text-align: center; margin-top: 20px;">
         <button id="resetBtn" style="display:none;">Reset Page / Load new file</button>
+        <button id="wholeMonth" style="display:none;">Zoom out to whole month</button>
         <button id="downloadBtn" style="display:none;">Download Picture</button>
     </div>
 
@@ -111,7 +112,7 @@
                 },
                 plugins: [{
                     id: 'customFill',
-                    beforeDatasetsDraw(chart) {
+                    afterDatasetsDraw(chart) {
                         if (!fillCallback) return;
                         const { ctx, chartArea: area, scales } = chart;
                         const xScale = scales.x;
@@ -126,10 +127,8 @@
                             const x2 = xScale.getPixelForValue(dp_i[i + 1].x);
                             const y1 = yScale.getPixelForValue(dp_i[i].y);
                             const y2 = yScale.getPixelForValue(dp_o[i].y);
-                            const fanState = fan[i].y;
-
-                            if (dp_o[i].y < dp_i[i].y) {
-                                ctx.fillStyle = fanState === 'f1' ? 'rgba(0,100,0,0.3)' : 'rgba(0,255,0,0.2)';
+                            if (fan[i].y === 'f1') {
+                                ctx.fillStyle = 'rgba(0,150,0,.5)';
                                 ctx.fillRect(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1));
                             }
                         }
@@ -250,7 +249,12 @@
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
-                        tension: 0.1
+                        tension: 0.1,
+                        fill: {
+                            target: '-1',                   // fill against inside
+                            above: 'rgb(255, 255, 255)',   // Area will be white above 
+                            below: 'rgb(100, 255,100 )'    // And green below 
+                        }
                     },
                     {
                         label: 'Fan',
@@ -260,9 +264,15 @@
                 ],
                 'Dew Point',
                 'Dew Point (°C)',
-                true
+                true // enable special filling
             );
         }
+        
+        document.getElementById('wholeMonth').addEventListener('click', () => {
+            charts.forEach(chart => {
+                chart.resetZoom();
+            });
+        });
 
         document.getElementById('csvFileInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
@@ -275,6 +285,7 @@
             // Hide upload, show reset + download
             document.getElementById('CSVInputControls').style.display = 'none';
             document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('wholeMonth').style.display = 'inline-block';
             document.getElementById('downloadBtn').style.display = 'inline-block';
 
 
