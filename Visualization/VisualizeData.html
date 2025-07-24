@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Dewpoint Ventilation - Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,6 +37,8 @@
         <button id="resetBtn" style="display:none;">Reset Page / Load new file</button>
         <button id="downloadBtn" style="display:none;">Download Picture</button>
     </div>
+
+    <div id="ResultText"></div>
 
     <canvas id="tempChart"></canvas>
     <canvas id="humidityChart"></canvas>
@@ -80,9 +82,13 @@
                         legend: { display: true, position: 'right' },
                         title: { display: true, text: title + ' '+monthStr },
                         zoom: {
-                            pan: { enabled: true, mode: 'x', onPan: ({ chart }) => syncZoom(chart)  },
-                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x', 
-                                onZoom: ({ chart }) => syncZoom(chart) }
+                            pan: { enabled: true, mode: 'xy',
+                                   onPan: ({ chart }) => syncZoom(chart)  
+                                 },
+                            zoom: { wheel: { enabled: true }, 
+                                   pinch: { enabled: true }, mode: 'x', 
+                                   onZoom: ({ chart }) => syncZoom(chart) 
+                                   }
                         }
                     },
                     scales: {
@@ -141,6 +147,41 @@
                     chart.zoomScale('x', { min: range.min, max: range.max });
                 }
             });
+        }
+
+
+        const range = (lo, hi) => Array .from ({length: hi - lo + 1}, (_, i) => lo + i)
+            // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
+
+        const localMaxima = (ns) => {
+            // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
+            const includeStart = ns [0] > ns [1]
+            const includeEnd = ns [ns.length - 1] > ns [ns .length -2]
+            const intermediates = range (0, ns .length - 2)
+                .filter ((i) => ns [i - 1] < ns [i] && ns [i + 1] < ns [i])
+            const beginning = includeStart ? [0] : []
+            const ending = includeEnd ? [ns .length - 1] : []
+            return beginning .concat (intermediates) .concat (ending)
+            }
+
+        function calcTotalOnTime(data, interestingDate) {
+            //console.log(localMaxima(data['On_s']));
+            //console.table(data);
+            //console.table(data.map(row => (row['On_s'])));
+            var on_s = data.map(row => (row['On_s']));
+            var locMaxs = localMaxima(on_s);
+            var totalOnTime_s = locMaxs.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue
+            },0);
+            totalOnTime_min = Math.floor(totalOnTime_s/60,0); 
+            totalOnTime_h = Math.floor(totalOnTime_min/60,0);
+            // how many minutes left:
+            totalOnTime_h_min = Math.floor(totalOnTime_min%60,0);
+            //console.log(totalOnTime_s);
+            //console.log(totalOnTime_h);
+            //console.log(totalOnTime_h_min);
+            document.getElementById('ResultText').innerHTML = '<p>In ' + interestingDate.getFullYear() + '-' + 
+                interestingDate.getMonth() + ' Fan was running: ' + totalOnTime_h.toString() + ':' + totalOnTime_h_min.toString() + ' hours:min.</p>';
         }
 
         function plotAll(data) {
@@ -256,8 +297,14 @@
                         if (data.length === 0) {
                             alert('No valid data found.');
                             return;
-                        }
-                        monthStr = data[1]['Date'].substring(0, 7);
+                        }                      
+
+                        interestingDate = new Date(data[1]['Date']);
+                        monthStr = interestingDate.getFullYear() + '-' + interestingDate.getMonth();
+                        //console.log(interestingDate.getFullYear());    
+                        //console.log(interestingDate.getMonth());    
+
+                        calcTotalOnTime(data, interestingDate);
 
                         plotAll(data);
                     },
