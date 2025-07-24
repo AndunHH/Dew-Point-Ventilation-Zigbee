@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Climate Charts (A4 Layout)</title>
+    <title>Dewpoint Ventilation - Visualization</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -17,24 +17,26 @@
         canvas {
             display: block;
             width: 90%;
-            margin: 20px auto;
+            margin: 5px auto;
         }
     </style>
 </head>
 
 <body>
     <h1>Visualization of Temperature, Relative Humidity and Dewpoint</h1>
+    <p>This visualization is part of the Dewpoint Ventilation project hosted at <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>.</p>
+    <p>The introduction to the page can be read <a href="../">here</a>.</p>
 
-    <div id="controls">
+    <div id="CSVInputControls">
+        Please select a .csv file to visualize:
         <input type="file" id="csvFileInput" accept=".csv" />
     </div>
 
 
     <div style="text-align: center; margin-top: 20px;">
-        <button id="resetBtn" style="display:none;">Reset Page</button>
-        <button id="downloadBtn" style="display:none;">Download Charts</button>
+        <button id="resetBtn" style="display:none;">Reset Page / Load new file</button>
+        <button id="downloadBtn" style="display:none;">Download Picture</button>
     </div>
-
 
     <canvas id="tempChart"></canvas>
     <canvas id="humidityChart"></canvas>
@@ -70,8 +72,8 @@
                 type: 'line',
                 data: { datasets },
                 options: {
-                    responsive: false,
-                    aspectRatio: 4,
+                    responsive: true,
+                    aspectRatio: 5,
                     interaction: { mode: 'x', intersect: false },
                     elements: {point: { radius: 1}},
                     plugins: {
@@ -170,14 +172,14 @@
                 document.getElementById('humidityChart'),
                 [
                     {
-                        label: 'Humidity H_i',
+                        label: 'Humidity inside',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Humidity H_o',
+                        label: 'Humidity outside',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -192,14 +194,14 @@
                 document.getElementById('dewChart'),
                 [
                     {
-                        label: 'Dew point DP_i',
+                        label: 'Dew point inside',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Dew point DP_o',
+                        label: 'Dew point outside',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -223,7 +225,7 @@
 
 
             // Hide upload, show reset + download
-            document.getElementById('csvFileInput').style.display = 'none';
+            document.getElementById('CSVInputControls').style.display = 'none';
             document.getElementById('resetBtn').style.display = 'inline-block';
             document.getElementById('downloadBtn').style.display = 'inline-block';
 
