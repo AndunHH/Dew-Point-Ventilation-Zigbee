@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dewpoint Ventilation - Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        canvas {
+            display: block;
+            width: 90%;
+            margin: 5px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Visualization of Temperature, Relative Humidity and Dewpoint</h1>
+    <p>This visualization is part of the Dewpoint Ventilation project hosted at <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>.</p>
+    <p>The introduction to the page can be read <a href="../">here</a>.</p>
+
+    <div id="CSVInputControls">
+        Please select a .csv file to visualize:
+        <input type="file" id="csvFileInput" accept=".csv" />
+    </div>
+
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="resetBtn" style="display:none;">Reset Page / Load new file</button>
+        <button id="downloadBtn" style="display:none;">Download Picture</button>
+    </div>
+
+    <div id="ResultText"></div>
+
+    <canvas id="tempChart"></canvas>
+    <canvas id="humidityChart"></canvas>
+    <canvas id="dewChart"></canvas>
+
+    <script>
+        const CSV_DELIMITER = ';';
+        const charts = [];
+        monthStr = '2000-01';
+
+        function cleanLine(line) {
+            line = line.replace(/[^\x20-\x7E]/g, '').trim();
+            if (line.endsWith(CSV_DELIMITER)) line = line.slice(0, -1);
+            return line;
+        }
+
+        function cleanCSVContent(rawText) {
+            const rawLines = rawText.split('\n');
+            const cleaned = rawLines.map(cleanLine).filter(line => line.trim() !== '');
+            const headerLine = cleaned.find(line => line.startsWith('Date'));
+            if (!headerLine) return [];
+
+            const expectedDelimiters = headerLine.split(CSV_DELIMITER).length - 1;
+
+            return cleaned.filter((line, index) =>
+                (index === cleaned.indexOf(headerLine)) ||
+                (!line.startsWith('Date') && line.split(CSV_DELIMITER).length - 1 === expectedDelimiters)
+            ).join('\n');
+        }
+
+        function createChart(ctx, datasets, title, yLabel, fillCallback = null, showX = true) {
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    aspectRatio: 5,
+                    interaction: { mode: 'x', intersect: false },
+                    elements: {point: { radius: 1}},
+                    plugins: {
+                        legend: { display: true, position: 'right' },
+                        title: { display: true, text: title + ' '+monthStr },
+                        zoom: {
+                            pan: { enabled: true, mode: 'xy',
+                                   onPan: ({ chart }) => syncZoom(chart)  
+                                 },
+                            zoom: { wheel: { enabled: true }, 
+                                   pinch: { enabled: true }, mode: 'x', 
+                                   onZoom: ({ chart }) => syncZoom(chart) 
+                                   }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: 'day', displayFormats: { day: 'dd.MM' } },
+                            ticks: {
+                                display: true,
+                                autoSkip: true,
+                            },
+                            grid: { display: true }
+                        },
+                        y: {
+                            title: { display: true, text: yLabel},
+                            grid: { display: true }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'customFill',
+                    beforeDatasetsDraw(chart) {
+                        if (!fillCallback) return;
+                        const { ctx, chartArea: area, scales } = chart;
+                        const xScale = scales.x;
+                        const yScale = scales.y;
+                        const dp_i = chart.data.datasets[0].data;
+                        const dp_o = chart.data.datasets[1].data;
+                        const fan = chart.data.datasets[2].data;
+
+                        ctx.save();
+                        for (let i = 0; i < dp_i.length - 1; i++) {
+                            const x1 = xScale.getPixelForValue(dp_i[i].x);
+                            const x2 = xScale.getPixelForValue(dp_i[i + 1].x);
+                            const y1 = yScale.getPixelForValue(dp_i[i].y);
+                            const y2 = yScale.getPixelForValue(dp_o[i].y);
+                            const fanState = fan[i].y;
+
+                            if (dp_o[i].y < dp_i[i].y) {
+                                ctx.fillStyle = fanState === 'f1' ? 'rgba(0,100,0,0.3)' : 'rgba(0,255,0,0.2)';
+                                ctx.fillRect(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1));
+                            }
+                        }
+                        ctx.restore();
+                    }
+                }]
+            });
+
+            charts.push(chart);
+            return chart;
+        }
+
+        function syncZoom(sourceChart) {
+            const range = sourceChart.scales.x;
+            charts.forEach(chart => {
+                if (chart !== sourceChart) {
+                    chart.zoomScale('x', { min: range.min, max: range.max });
+                }
+            });
+        }
+
+
+        const range = (lo, hi) => Array .from ({length: hi - lo + 1}, (_, i) => lo + i)
+            // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
+
+        const localMaxima = (ns) => {
+            // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
+            const includeStart = ns [0] > ns [1]
+            const includeEnd = ns [ns.length - 1] > ns [ns .length -2]
+            const intermediates = range (0, ns .length - 2)
+                .filter ((i) => ns [i - 1] < ns [i] && ns [i + 1] < ns [i])
+            const beginning = includeStart ? [0] : []
+            const ending = includeEnd ? [ns .length - 1] : []
+            return beginning .concat (intermediates) .concat (ending)
+            }
+
+        function calcTotalOnTime(data, interestingDate) {
+            //console.log(localMaxima(data['On_s']));
+            //console.table(data);
+            //console.table(data.map(row => (row['On_s'])));
+            var on_s = data.map(row => (row['On_s']));
+            var locMaxs = localMaxima(on_s);
+            var totalOnTime_s = locMaxs.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue
+            },0);
+            totalOnTime_min = Math.floor(totalOnTime_s/60,0); 
+            totalOnTime_h = Math.floor(totalOnTime_min/60,0);
+            // how many minutes left:
+            totalOnTime_h_min = Math.floor(totalOnTime_min%60,0);
+            //console.log(totalOnTime_s);
+            //console.log(totalOnTime_h);
+            //console.log(totalOnTime_h_min);
+            document.getElementById('ResultText').innerHTML = '<p>In ' + interestingDate.getFullYear() + '-' + 
+                interestingDate.getMonth() + ' Fan was running: ' + totalOnTime_h.toString() + ':' + totalOnTime_h_min.toString() + ' hours:min.</p>';
+        }
+
+        function plotAll(data) {
+            const dates = data.map(row => new Date(row['Date']));
+            createChart(
+                document.getElementById('tempChart'),
+                [
+                    {
+                        label: 'Temperature T_i',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_i'] })),
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255,0,0,0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Temperature T_o',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_o'] })),
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0,0,255,0.1)',
+                        tension: 0.1
+                    }
+                ],
+                'Temperature',
+                'Temperature (°C)',
+                false
+            );
+
+            createChart(
+                document.getElementById('humidityChart'),
+                [
+                    {
+                        label: 'Humidity inside',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_i'] })),
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255,0,0,0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Humidity outside',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_o'] })),
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0,0,255,0.1)',
+                        tension: 0.1
+                    }
+                ],
+                'Humidity',
+                'Humidity (%)'
+            );
+
+            createChart(
+                document.getElementById('dewChart'),
+                [
+                    {
+                        label: 'Dew point inside',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_i'] })),
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255,0,0,0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Dew point outside',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_o'] })),
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0,0,255,0.1)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Fan',
+                        data: data.map(row => ({ x: new Date(row['Date']), y: row['Fan'] })),
+                        hidden: true
+                    }
+                ],
+                'Dew Point',
+                'Dew Point (°C)',
+                true
+            );
+        }
+
+        document.getElementById('csvFileInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+
+            // Hide upload, show reset + download
+            document.getElementById('CSVInputControls').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const cleanedText = cleanCSVContent(event.target.result);
+
+                Papa.parse(cleanedText, {
+                    delimiter: CSV_DELIMITER,
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+                    complete: function (results) {
+                        const data = results.data.filter(row =>
+                            row['Date'] &&
+                            row['Temperature T_i'] !== undefined &&
+                            row['Temperature T_o'] !== undefined &&
+                            row['Humidity H_i'] !== undefined &&
+                            row['Humidity H_o'] !== undefined &&
+                            row['Dew point DP_i'] !== undefined &&
+                            row['Humidity H_o'] !== undefined &&
+                            row['Dew point DP_i'] !== undefined &&
+                            row['Dew point DP_o'] !== undefined &&
+                            row['Fan'] !== undefined
+                        );
+
+                        if (data.length === 0) {
+                            alert('No valid data found.');
+                            return;
+                        }                      
+
+                        interestingDate = new Date(data[1]['Date']);
+                        monthStr = interestingDate.getFullYear() + '-' + interestingDate.getMonth();
+                        //console.log(interestingDate.getFullYear());    
+                        //console.log(interestingDate.getMonth());    
+
+                        calcTotalOnTime(data, interestingDate);
+
+                        plotAll(data);
+                    },
+                    error: function (err) {
+                        console.error('Parsing error:', err);
+                        alert('Failed to parse the CSV file.');
+                    }
+                });
+            };
+
+            reader.readAsText(file);
+        });
+
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const canvasList = ['tempChart', 'humidityChart', 'dewChart'].map(id => document.getElementById(id));
+            const exportCanvas = document.createElement('canvas');
+            const width = canvasList[0].width;
+            const height = canvasList.reduce((sum, c) => sum + c.height, 0);
+            exportCanvas.width = width;
+            exportCanvas.height = height;
+            const ctx = exportCanvas.getContext('2d');
+            ctx.fillStyle = "#FFF";
+            ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+            let offsetY = 0;
+            canvasList.forEach(canvas => {
+                ctx.drawImage(canvas, 0, offsetY);
+                offsetY += canvas.height;
+            });
+
+            const link = document.createElement('a');
+            link.download = monthStr + '.jpg';
+            link.href = exportCanvas.toDataURL('image/jpg');
+            link.click();
+        });
+
+    </script>
+</body>
+</html>

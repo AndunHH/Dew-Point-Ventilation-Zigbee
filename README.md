@@ -4,6 +4,9 @@ Dew Point Ventilation based on Zigbee with ESP32C6
 This repository contains the source code for a dew point ventilator as initially described here by german MAKE magazin: [Taupunktluefter](https://github.com/MakeMagazinDE/Taupunktluefter). The whole build is explained in german language (behind a paywall) at [heise.de](https://www.heise.de/ratgeber/Bastelprojekt-Taupunkt-Lueftung-mit-ZigBee-Funksteckdose-installieren-10300381.html)
 
 
+# Newest Updates:
+July 2025: Update of the [visualization](#recording-the-data-on-the-sd-card-and-visualization). Now directly in HTML and javascript. Try it out here: [VisualizeData.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData.html).
+
 # Instructions for the dew point ventilator
 These instructions describe a dew point ventilation system. This system is used to measure the humidity of the air at two locations. If the air outside is drier in absolute terms than inside, a fan is switched on. 
 
@@ -99,11 +102,11 @@ If you press the button a third time, you will return to automatic mode.
 
 Regardless of the mode, the display always shows whether ventilation is theoretically useful.
 
-# Recording the data on the SD card
+# Recording the data on the SD card and visualization
 
 The micro SD card can be clicked into place by pressing lightly on the right-hand side of the housing. This causes it to come out a few millimeters and can be removed.
 
-The data on the SD card can be converted into a nice graphic using the Jupyter notebook [Dewpoint-Visualization.ipynb](Visualization/Dewpoint-Visualization.ipynb). 
+The data on the SD card can be converted into a nice graphic using the Jupyter notebook [Dewpoint-Visualization.ipynb](Visualization/Dewpoint-Visualization.ipynb). The seconnd approach is still under construction but works direclty from the browser. See the code here [Visualization/VisualizeData.html](Visualization/VisualizeData.html) or view the page directly on github pages: [VisualizeData.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData.html).
 
 The visualization shows:
 1. The temperature inside and outside. The limits are shown as a dotted line. (At the moment the limits are not read from the sd card, but are hard coded into the visualization.)
@@ -113,7 +116,7 @@ The visualization shows:
 
 ![example of the evaluated picture](images/2024-05.png)
 
-## How get the visualization running
+## How to get the Jupyter visualization running
 1. Install VScode extensions: Jupyter and Python and restart vscode.
 2. Open the Jupyter Notebook "Dewpoint-Visualization.ipynb" in vscode.
 3. Handle Python kernel and environment as follows:
