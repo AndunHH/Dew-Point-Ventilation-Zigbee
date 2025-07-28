@@ -106,7 +106,8 @@ Regardless of the mode, the display always shows whether ventilation is theoreti
 
 The micro SD card can be clicked into place by pressing lightly on the right-hand side of the housing. This causes it to come out a few millimeters and can be removed.
 
-The data on the SD card can be converted into a nice graphic using the Jupyter notebook [Dewpoint-Visualization.ipynb](Visualization/Dewpoint-Visualization.ipynb). The seconnd approach is still under construction but works direclty from the browser. See the code here [Visualization/VisualizeData.html](Visualization/VisualizeData.html) or view the page directly on github pages: [VisualizeData.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData.html).
+The data on the SD card can be converted into a nice graphic using the Jupyter notebook [Dewpoint-Visualization.ipynb](Visualization/Dewpoint-Visualization.ipynb). The second approach works directly from the browser. See the code here [Visualization/VisualizeData.html](Visualization/VisualizeData.html) or view the page directly on github pages: [VisualizeData.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData.html). 
+There is also a german version: [VisualizeData_DE.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData_DE.html). 
 
 The visualization shows:
 1. The temperature inside and outside. The limits are shown as a dotted line. (At the moment the limits are not read from the sd card, but are hard coded into the visualization.)

@@ -24,19 +24,19 @@
 </head>
 
 <body>
-    <h1>Visualization of Temperature, Relative Humidity and Dewpoint</h1>
-    <p>This visualization is part of the Dewpoint Ventilation project hosted at <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>. The introduction to the page can be read <a href="../">here</a>.</p>
-<p>Please select a file from your sd-card to visualize the climate data of one month. The file will be processed locally in your browser and NOT uploaded to the internet. You can than zoom into the data or download a picture of it. The green area between the dewpoint graphs show, when the system actually used the ventilator.</p>
+    <h1>Visualisierung von Temperatur, relativer Luftfeuchtigkeit und Taupunkt</h1>
+    <p>Diese Visualisierung ist Teil des Dewpoint Ventilation-Projekts unter <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>. Die Einführung zu dieser Seite finden Sie <a href="../">hier</a>.</p>
+<p>Bitte wählen Sie eine Datei von Ihrer SD-Karte aus, um die Klimadaten eines Monats zu visualisieren. Die Datei wird lokal in Ihrem Browser verarbeitet und NICHT ins Internet hochgeladen. Sie können dann die Daten vergrößern oder ein Bild davon herunterladen. Der grüne Bereich zwischen den Taupunkt-Diagrammen zeigt an, wann das System tatsächlich den Ventilator verwendet hat.</p>
     <div id="CSVInputControls">
-        Please select a .csv file:
+        Bitte wählen Sie eine CSV-Datei aus:
         <input type="file" id="csvFileInput" accept=".csv" />
     </div>
 
 
     <div style="text-align: center; margin-top: 20px;">
-        <button id="resetBtn" style="display:none;">Reset Page / Load new file</button>
-        <button id="wholeMonth" style="display:none;">Zoom out to whole month</button>
-        <button id="downloadBtn" style="display:none;">Download Picture</button>
+        <button id="resetBtn" style="display:none;">Seite neu laden / Neue Datei hochladen</button>
+        <button id="wholeMonth" style="display:none;">Den ganzen Monat anzeigen</button>
+        <button id="downloadBtn" style="display:none;">Bild herunterladen</button>
     </div>
 
     <div id="ResultText"></div>
@@ -184,7 +184,7 @@
             //console.log(totalOnTime_h);
             //console.log(totalOnTime_h_min);
             
-            ResultTextRaw =  'In ' + monthLongStr + ' the fan was running for ' + totalOnTime_h.toString() + ' hours and ' + totalOnTime_h_min.toString() + ' minutes.';
+            ResultTextRaw =  'Im ' + monthLongStr + ' lief der Lüfter für ' + totalOnTime_h.toString() + ' Stunden und ' + totalOnTime_h_min.toString() + ' Minuten.';
             document.getElementById('ResultText').innerHTML = '<p>'+  ResultTextRaw + '</p>';
         }
 
@@ -208,8 +208,8 @@
                         tension: 0.1
                     }
                 ],
-                'Temperature',
-                'Temperature (°C)',
+                'Temperatur',
+                'Temperatur (°C)',
                 false
             );
 
@@ -217,36 +217,36 @@
                 document.getElementById('humidityChart'),
                 [
                     {
-                        label: 'Humidity inside',
+                        label: 'Rel. Feuchtigkeit drinnen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Humidity outside',
+                        label: 'Rel. Feuchtigkeit draußen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
                         tension: 0.1
                     }
                 ],
-                'Humidity',
-                'Humidity (%)'
+                'Rel. Feuchtigkeit',
+                'Rel. Feuchtigkeit (%)'
             );
 
             createChart(
                 document.getElementById('dewChart'),
                 [
                     {
-                        label: 'Dew point inside',
+                        label: 'Taupunkt drinnen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Dew point outside',
+                        label: 'Taupunk draußen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -258,13 +258,13 @@
                         }
                     },
                     {
-                        label: 'Fan',
+                        label: 'Lüfter',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Fan'] })),
                         hidden: false
                     }
                 ],
-                'Dew Point',
-                'Dew Point (°C)',
+                'Taupunkt',
+                'Taupunkt (°C)',
                 true // enable special filling
             );
         }
@@ -324,7 +324,7 @@
                         //console.log(new Intl.DateTimeFormat("en-US", { month: "long" }).format(interestingDate));
 
                         monthStr = interestingDate.getFullYear() + '-' + (interestingDate.getMonth() + 1); // getMonth() is zero based
-                        monthLongStr = new Intl.DateTimeFormat("en-US", { month: "long" }).format(interestingDate) + ' ' + interestingDate.getFullYear();
+                        monthLongStr = new Intl.DateTimeFormat("de-DE", { month: "long" }).format(interestingDate) + ' ' + interestingDate.getFullYear();
                         //console.log(interestingDate.getFullYear());    
                         //console.log(interestingDate.getMonth());    
 
