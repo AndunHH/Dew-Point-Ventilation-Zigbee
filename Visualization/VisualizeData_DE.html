@@ -26,12 +26,16 @@
 <body>
     <h1>Visualisierung von Temperatur, relativer Luftfeuchtigkeit und Taupunkt</h1>
     <p>Diese Visualisierung ist Teil des Dewpoint Ventilation-Projekts unter <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>. Die Einführung zu dieser Seite finden Sie <a href="../">hier</a>.</p>
-<p>Bitte wählen Sie eine Datei von Ihrer SD-Karte aus, um die Klimadaten eines Monats zu visualisieren. Die Datei wird lokal in Ihrem Browser verarbeitet und NICHT ins Internet hochgeladen. Sie können dann die Daten vergrößern oder ein Bild davon herunterladen. Der grüne Bereich zwischen den Taupunkt-Diagrammen zeigt an, wann das System tatsächlich den Ventilator verwendet hat.</p>
+<p>Bitte wählen Sie eine Datei von Ihrer SD-Karte aus, um die Klimadaten eines Monats zu visualisieren. Die Datei wird lokal in Ihrem Browser verarbeitet und NICHT ins Internet hochgeladen. Sie können dann die Daten vergrößern oder ein Bild davon herunterladen. </p>
     <div id="CSVInputControls">
         Bitte wählen Sie eine CSV-Datei aus:
         <input type="file" id="csvFileInput" accept=".csv" />
     </div>
-
+<p>Der gelbe Bereich zwischen den Taupunkt-Diagrammen zeigt an, dass der Taupunkt draußen niedriger ist, als drinnen. Wenn der Bereich dunkelgrün gefärbt ist (meistens als Striche zu erkennen), dann ist der Lüfter tatsächlich gelaufen. Beachte bitte, dass der Lüfter im Automatik-Modus nur läuft, wenn:</p>
+<ul><li>Die Temperature drinnen über 10°C beträgt.</li>
+   <li>Die Temperatur draußen über -2°C beträgt.</li>
+   <li>Der Taupunkt drinnen größer als 5°C ist.</li>
+   <li>Wenn der <b>Taupunkt draußen um 5°C niedriger ist als der Taupunkt drinnen</b>. Der Abstand der beiden Kurven (=der gelbe Bereich) muss groß genug sein.</li></ul>
 
     <div style="text-align: center; margin-top: 20px;">
         <button id="resetBtn" style="display:none;">Seite neu laden / Neue Datei hochladen</button>
@@ -129,7 +133,7 @@
                             const y1 = yScale.getPixelForValue(dp_i[i].y);
                             const y2 = yScale.getPixelForValue(dp_o[i].y);
                             if (fan[i].y === 'f1') {
-                                ctx.fillStyle = 'rgba(0,150,0,.5)';
+                                ctx.fillStyle = 'rgba(0,150,0,.8)';
                                 ctx.fillRect(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1));
                             }
                         }
@@ -252,15 +256,17 @@
                         backgroundColor: 'rgba(0,0,255,0.1)',
                         tension: 0.1,
                         fill: {
-                            target: '-1',                   // fill against inside
+                            target: '-1',                  // fill against inside
                             above: 'rgb(255, 255, 255)',   // Area will be white above 
-                            below: 'rgb(100, 255,100 )'    // And green below 
+                            below: 'rgba(255, 216,0,.5 )'  // And yellow below 
                         }
                     },
                     {
                         label: 'Lüfter',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Fan'] })),
-                        hidden: false
+                        hidden: false,
+                        backgroundColor: 'rgba(0,255,100,0.5)',
+                        borderColor: 'green',
                     }
                 ],
                 'Taupunkt',
