@@ -5,10 +5,13 @@
     <meta charset="UTF-8">
     <title>Dewpoint Ventilation - Visualization</title>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,17 +28,26 @@
 
 <body>
     <h1>Visualisierung von Temperatur, relativer Luftfeuchtigkeit und Taupunkt</h1>
-    <p>Diese Visualisierung ist Teil des Dewpoint Ventilation-Projekts unter <a href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>. Die Einführung zu dieser Seite finden Sie <a href="../">hier</a>.</p>
-<p>Bitte wählen Sie eine Datei von Ihrer SD-Karte aus, um die Klimadaten eines Monats zu visualisieren. Die Datei wird lokal in Ihrem Browser verarbeitet und NICHT ins Internet hochgeladen. Sie können dann die Daten vergrößern oder ein Bild davon herunterladen. </p>
+    <p>Diese Visualisierung ist Teil des Dewpoint Ventilation-Projekts unter <a
+            href="https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee">https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee</a>.
+        Die Einführung zu dieser Seite finden Sie <a href="../">hier</a>.</p>
+    <p>Bitte wählen Sie eine Datei von Ihrer SD-Karte aus, um die Klimadaten eines Monats zu visualisieren. Die Datei
+        wird lokal in Ihrem Browser verarbeitet und NICHT ins Internet hochgeladen. Sie können dann die Daten vergrößern
+        oder ein Bild davon herunterladen. </p>
     <div id="CSVInputControls">
         Bitte wählen Sie eine CSV-Datei aus:
         <input type="file" id="csvFileInput" accept=".csv" />
     </div>
-<p>Der gelbe Bereich zwischen den Taupunkt-Diagrammen zeigt an, dass der Taupunkt draußen niedriger ist, als drinnen. Wenn der Bereich dunkelgrün gefärbt ist (meistens als Striche zu erkennen), dann ist der Lüfter tatsächlich gelaufen. Beachte bitte, dass der Lüfter im Automatik-Modus nur läuft, wenn:</p>
-<ul><li>Die Temperature drinnen über 10°C beträgt.</li>
-   <li>Die Temperatur draußen über -2°C beträgt.</li>
-   <li>Der Taupunkt drinnen größer als 5°C ist.</li>
-   <li>Wenn der <b>Taupunkt draußen um 5°C niedriger ist als der Taupunkt drinnen</b>. Der Abstand der beiden Kurven (=der gelbe Bereich) muss groß genug sein.</li></ul>
+    <p>Der gelbe Bereich zwischen den Taupunkt-Diagrammen zeigt an, dass der Taupunkt draußen niedriger ist, als
+        drinnen. Wenn der Bereich dunkelgrün gefärbt ist (meistens als Striche zu erkennen), dann ist der Lüfter
+        tatsächlich gelaufen. Beachte bitte, dass der Lüfter im Automatik-Modus nur läuft, wenn:</p>
+    <ul>
+        <li>Die Temperature drinnen über 10°C beträgt. (rote Linie)</li>
+        <li>Die Temperatur draußen über -2°C beträgt. (blaue Linie)</li>
+        <li>Der Taupunkt drinnen größer als 5°C ist. (rote Linie)</li>
+        <li>Wenn der <b>Taupunkt draußen um 5°C niedriger ist als der Taupunkt drinnen</b>. Der Abstand der beiden
+            Kurven (=der gelbe Bereich) muss groß genug sein.</li>
+    </ul>
 
     <div style="text-align: center; margin-top: 20px;">
         <button id="resetBtn" style="display:none;">Seite neu laden / Neue Datei hochladen</button>
@@ -77,7 +89,7 @@
             ).join('\n');
         }
 
-        function createChart(ctx, datasets, title, yLabel, fillCallback = null, showX = true) {
+        function createChart(ctx, datasets, title, yLabel, fillCallback = null, showX = true, annotationsSet = null) {
             const chart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets },
@@ -85,18 +97,23 @@
                     responsive: true,
                     aspectRatio: 5,
                     interaction: { mode: 'x', intersect: false },
-                    elements: {point: { radius: 1}},
+                    elements: { point: { radius: 1 } },
                     plugins: {
                         legend: { display: true, position: 'right' },
-                        title: { display: true, text: title + ' '+monthStr },
+                        title: { display: true, text: title + ' ' + monthStr },
                         zoom: {
-                            pan: { enabled: true, mode: 'xy',
-                                   onPan: ({ chart }) => syncZoom(chart)  
-                                 },
-                            zoom: { wheel: { enabled: true }, 
-                                   pinch: { enabled: true }, mode: 'x', 
-                                   onZoom: ({ chart }) => syncZoom(chart) 
-                                   }
+                            pan: {
+                                enabled: true, mode: 'xy',
+                                onPan: ({ chart }) => syncZoom(chart)
+                            },
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true }, mode: 'x',
+                                onZoom: ({ chart }) => syncZoom(chart)
+                            }
+                        },
+                        annotation: {
+                            annotations:  annotationsSet
                         }
                     },
                     scales: {
@@ -110,7 +127,7 @@
                             grid: { display: true }
                         },
                         y: {
-                            title: { display: true, text: yLabel},
+                            title: { display: true, text: yLabel },
                             grid: { display: true }
                         }
                     }
@@ -156,19 +173,19 @@
         }
 
 
-        const range = (lo, hi) => Array .from ({length: hi - lo + 1}, (_, i) => lo + i)
-            // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
+        const range = (lo, hi) => Array.from({ length: hi - lo + 1 }, (_, i) => lo + i)
+        // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
 
         const localMaxima = (ns) => {
             // taken from https://stackoverflow.com/questions/69384513/javascript-algorithms-how-do-i-find-all-local-max-in-an-array
-            const includeStart = ns [0] > ns [1]
-            const includeEnd = ns [ns.length - 1] > ns [ns .length -2]
-            const intermediates = range (0, ns .length - 2)
-                .filter ((i) => ns [i - 1] < ns [i] && ns [i + 1] < ns [i])
+            const includeStart = ns[0] > ns[1]
+            const includeEnd = ns[ns.length - 1] > ns[ns.length - 2]
+            const intermediates = range(0, ns.length - 2)
+                .filter((i) => ns[i - 1] < ns[i] && ns[i + 1] < ns[i])
             const beginning = includeStart ? [0] : []
-            const ending = includeEnd ? [ns .length - 1] : []
-            return beginning .concat (intermediates) .concat (ending)
-            }
+            const ending = includeEnd ? [ns.length - 1] : []
+            return beginning.concat(intermediates).concat(ending)
+        }
 
         function calcTotalOnTime(data, interestingDate) {
             //console.log(localMaxima(data['On_s']));
@@ -178,22 +195,51 @@
             var locMaxs = localMaxima(on_s);
             var totalOnTime_s = locMaxs.reduce((accumulator, currentValue) => {
                 return accumulator + currentValue
-            },0);
+            }, 0);
 
-            totalOnTime_min = Math.floor(totalOnTime_s/60,0); 
-            totalOnTime_h = Math.floor(totalOnTime_min/60,0);
+            totalOnTime_min = Math.floor(totalOnTime_s / 60, 0);
+            totalOnTime_h = Math.floor(totalOnTime_min / 60, 0);
             // how many minutes left:
-            totalOnTime_h_min = Math.floor(totalOnTime_min%60,0);
+            totalOnTime_h_min = Math.floor(totalOnTime_min % 60, 0);
             //console.log(totalOnTime_s);
             //console.log(totalOnTime_h);
             //console.log(totalOnTime_h_min);
-            
-            ResultTextRaw =  'Im ' + monthLongStr + ' lief der Lüfter für ' + totalOnTime_h.toString() + ' Stunden und ' + totalOnTime_h_min.toString() + ' Minuten.';
-            document.getElementById('ResultText').innerHTML = '<p>'+  ResultTextRaw + '</p>';
+
+            ResultTextRaw = 'Im ' + monthLongStr + ' lief der Lüfter für ' + totalOnTime_h.toString() + ' Stunden und ' + totalOnTime_h_min.toString() + ' Minuten.';
+            document.getElementById('ResultText').innerHTML = '<p>' + ResultTextRaw + '</p>';
         }
+
+
+
 
         function plotAll(data) {
             const dates = data.map(row => new Date(row['Date']));
+
+            tempAnnotations = {
+                    line1: {
+                        type: 'line',
+                        yMin: 10,
+                        yMax: 10,
+                        borderColor: 'rgba(255,99,132,.9)',
+                        borderWidth: 2
+                    },
+                line2: {
+                        type: 'line',
+                        yMin: -2,
+                        yMax: -2,
+                        borderColor: 'rgba(0,56,255,.5)',
+                        borderWidth: 2
+                    }};
+
+
+                dewAnnotations = {
+                    line3: {
+                        type: 'line',
+                        yMin: 5,
+                        yMax: 5,
+                        borderColor: 'rgba(255,99,132,.9)',
+                        borderWidth: 2
+                    }};
             createChart(
                 document.getElementById('tempChart'),
                 [
@@ -214,7 +260,9 @@
                 ],
                 'Temperatur',
                 'Temperatur (°C)',
-                false
+                null,
+                false,
+                tempAnnotations
             );
 
             createChart(
@@ -271,10 +319,15 @@
                 ],
                 'Taupunkt',
                 'Taupunkt (°C)',
-                true // enable special filling
+                null,
+                true, // enable special filling
+                dewAnnotations
             );
+
+
+
         }
-        
+
         document.getElementById('wholeMonth').addEventListener('click', () => {
             charts.forEach(chart => {
                 chart.resetZoom();
@@ -322,7 +375,7 @@
                         if (data.length === 0) {
                             alert('No valid data found.');
                             return;
-                        }                      
+                        }
 
                         interestingDate = new Date(data[1]['Date']);
                         //console.log(data[1]['Date']);
@@ -357,7 +410,7 @@
             const canvasList = ['tempChart', 'humidityChart', 'dewChart'].map(id => document.getElementById(id));
             const exportCanvas = document.createElement('canvas');
             const width = canvasList[0].width;
-            const height = canvasList.reduce((sum, c) => sum + c.height, 0)+30; // additional pixel for ResultText
+            const height = canvasList.reduce((sum, c) => sum + c.height, 0) + 30; // additional pixel for ResultText
             exportCanvas.width = width;
             exportCanvas.height = height;
             const ctx = exportCanvas.getContext('2d');
@@ -372,7 +425,7 @@
 
             ctx.font = "14px Arial";
             ctx.fillStyle = "black";
-            ctx.fillText(ResultTextRaw,5,offsetY+10);
+            ctx.fillText(ResultTextRaw, 5, offsetY + 10);
 
             const link = document.createElement('a');
             link.download = fileNameWOext + '.jpg';
@@ -382,4 +435,5 @@
 
     </script>
 </body>
+
 </html>
