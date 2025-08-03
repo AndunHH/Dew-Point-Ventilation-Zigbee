@@ -194,14 +194,14 @@
                 document.getElementById('tempChart'),
                 [
                     {
-                        label: 'Temperature inside',
+                        label: 'Temperatur drinnen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Temperature outside',
+                        label: 'Temperatur draußen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
