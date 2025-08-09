@@ -89,7 +89,7 @@
             ).join('\n');
         }
 
-        function createChart(ctx, datasets, title, yLabel, fillCallback = null, showX = true, annotationsSet = null) {
+        function createChart(ctx, datasets, title, yLabel, customFill = false, showX = true, annotationsSet = null) {
             const chart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets },
@@ -135,7 +135,7 @@
                 plugins: [{
                     id: 'customFill',
                     afterDatasetsDraw(chart) {
-                        if (!fillCallback) return;
+                        if (!customFill) return;
                         const { ctx, chartArea: area, scales } = chart;
                         const xScale = scales.x;
                         const yScale = scales.y;
@@ -260,9 +260,9 @@
                 ],
                 'Temperatur',
                 'Temperatur (°C)',
-                null,
-                false,
-                tempAnnotations
+                false, // no custom fill
+                false, // don't show X
+                tempAnnotations // show tempAnnotations
             );
 
             createChart(
@@ -284,7 +284,10 @@
                     }
                 ],
                 'Rel. Feuchtigkeit',
-                'Rel. Feuchtigkeit (%)'
+                'Rel. Feuchtigkeit (%)',
+                false, // no custom fill
+                false, // don't show X
+                null // no annotations
             );
 
             createChart(
@@ -319,9 +322,9 @@
                 ],
                 'Taupunkt',
                 'Taupunkt (°C)',
-                null,
-                true, // enable special filling
-                dewAnnotations
+                true, // custom fill
+                true, // show X
+                dewAnnotations // annotations for dewpoint
             );
 
 
