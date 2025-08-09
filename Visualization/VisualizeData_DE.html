@@ -57,6 +57,8 @@
 
     <div id="ResultText"></div>
 
+    <div id="legend-container"></div>
+
     <canvas id="tempChart"></canvas>
     <canvas id="humidityChart"></canvas>
     <canvas id="dewChart"></canvas>
@@ -89,7 +91,7 @@
             ).join('\n');
         }
 
-        function createChart(ctx, datasets, title, yLabel, customFill = false, showX = true, annotationsSet = null) {
+        function createChart(ctx, datasets, title, yLabel, customFill = false, showX = true, annotationsSet = null, plugInAdd) {
             const chart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets },
@@ -99,7 +101,11 @@
                     interaction: { mode: 'x', intersect: false },
                     elements: { point: { radius: 1 } },
                     plugins: {
-                        legend: { display: true, position: 'right' },
+                        htmlLegend: {
+                            // ID of the container to put the legend in
+                            containerID: 'legend-container',
+                        },
+                        legend: { display: false },
                         title: { display: true, text: title + ' ' + monthStr },
                         zoom: {
                             pan: {
@@ -113,7 +119,7 @@
                             }
                         },
                         annotation: {
-                            annotations:  annotationsSet
+                            annotations: annotationsSet
                         }
                     },
                     scales: {
@@ -132,31 +138,33 @@
                         }
                     }
                 },
-                plugins: [{
-                    id: 'customFill',
-                    afterDatasetsDraw(chart) {
-                        if (!customFill) return;
-                        const { ctx, chartArea: area, scales } = chart;
-                        const xScale = scales.x;
-                        const yScale = scales.y;
-                        const dp_i = chart.data.datasets[0].data;
-                        const dp_o = chart.data.datasets[1].data;
-                        const fan = chart.data.datasets[2].data;
+                plugins: [
+                    htmlLegendPlugin,
+                    {
+                        id: 'customFill',
+                        afterDatasetsDraw(chart) {
+                            if (!customFill) return;
+                            const { ctx, chartArea: area, scales } = chart;
+                            const xScale = scales.x;
+                            const yScale = scales.y;
+                            const dp_i = chart.data.datasets[0].data;
+                            const dp_o = chart.data.datasets[1].data;
+                            const fan = chart.data.datasets[2].data;
 
-                        ctx.save();
-                        for (let i = 0; i < dp_i.length - 1; i++) {
-                            const x1 = xScale.getPixelForValue(dp_i[i].x);
-                            const x2 = xScale.getPixelForValue(dp_i[i + 1].x);
-                            const y1 = yScale.getPixelForValue(dp_i[i].y);
-                            const y2 = yScale.getPixelForValue(dp_o[i].y);
-                            if (fan[i].y === 'f1') {
-                                ctx.fillStyle = 'rgba(0,150,0,.8)';
-                                ctx.fillRect(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1));
+                            ctx.save();
+                            for (let i = 0; i < dp_i.length - 1; i++) {
+                                const x1 = xScale.getPixelForValue(dp_i[i].x);
+                                const x2 = xScale.getPixelForValue(dp_i[i + 1].x);
+                                const y1 = yScale.getPixelForValue(dp_i[i].y);
+                                const y2 = yScale.getPixelForValue(dp_o[i].y);
+                                if (fan[i].y === 'f1') {
+                                    ctx.fillStyle = 'rgba(0,150,0,.8)';
+                                    ctx.fillRect(x1, Math.min(y1, y2), x2 - x1, Math.abs(y2 - y1));
+                                }
                             }
+                            ctx.restore();
                         }
-                        ctx.restore();
-                    }
-                }]
+                    }]
             });
 
             charts.push(chart);
@@ -216,42 +224,44 @@
             const dates = data.map(row => new Date(row['Date']));
 
             tempAnnotations = {
-                    line1: {
-                        type: 'line',
-                        yMin: 10,
-                        yMax: 10,
-                        borderColor: 'rgba(255,99,132,.9)',
-                        borderWidth: 2
-                    },
+                line1: {
+                    type: 'line',
+                    yMin: 10,
+                    yMax: 10,
+                    borderColor: 'rgba(255,99,132,.9)',
+                    borderWidth: 2
+                },
                 line2: {
-                        type: 'line',
-                        yMin: -2,
-                        yMax: -2,
-                        borderColor: 'rgba(0,56,255,.5)',
-                        borderWidth: 2
-                    }};
+                    type: 'line',
+                    yMin: -2,
+                    yMax: -2,
+                    borderColor: 'rgba(0,56,255,.5)',
+                    borderWidth: 2
+                }
+            };
 
 
-                dewAnnotations = {
-                    line3: {
-                        type: 'line',
-                        yMin: 5,
-                        yMax: 5,
-                        borderColor: 'rgba(255,99,132,.9)',
-                        borderWidth: 2
-                    }};
+            dewAnnotations = {
+                line3: {
+                    type: 'line',
+                    yMin: 5,
+                    yMax: 5,
+                    borderColor: 'rgba(255,99,132,.9)',
+                    borderWidth: 2
+                }
+            };
             createChart(
                 document.getElementById('tempChart'),
                 [
                     {
-                        label: 'Temperatur drinnen',
+                        label: 'Drinnen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Temperatur draußen',
+                        label: 'Draußen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Temperature T_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -269,14 +279,14 @@
                 document.getElementById('humidityChart'),
                 [
                     {
-                        label: 'Rel. Feuchtigkeit drinnen',
+                        label: 'Drinnen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Rel. Feuchtigkeit draußen',
+                        label: 'Draußen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Humidity H_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -294,14 +304,14 @@
                 document.getElementById('dewChart'),
                 [
                     {
-                        label: 'Taupunkt drinnen',
+                        label: 'Drinnen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_i'] })),
                         borderColor: 'red',
                         backgroundColor: 'rgba(255,0,0,0.1)',
                         tension: 0.1
                     },
                     {
-                        label: 'Taupunk draußen',
+                        label: 'Draußen',
                         data: data.map(row => ({ x: new Date(row['Date']), y: row['Dew point DP_o'] })),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0,0,255,0.1)',
@@ -435,6 +445,84 @@
             link.href = exportCanvas.toDataURL('image/jpg');
             link.click();
         });
+
+
+        const getOrCreateLegendList = (chart, id) => {
+            const legendContainer = document.getElementById(id);
+            let listContainer = legendContainer.querySelector('ul');
+
+            if (!listContainer) {
+                listContainer = document.createElement('ul');
+                listContainer.style.display = 'flex';
+                listContainer.style.flexDirection = 'row';
+                listContainer.style.margin = 0;
+                listContainer.style.padding = 0;
+
+                legendContainer.appendChild(listContainer);
+            }
+
+            return listContainer;
+        };
+
+        const htmlLegendPlugin = {
+            id: 'htmlLegend',
+            afterUpdate(chart, args, options) {
+                const ul = getOrCreateLegendList(chart, options.containerID);
+
+                // Remove old legend items
+                while (ul.firstChild) {
+                    ul.firstChild.remove();
+                }
+
+                // Reuse the built-in legendItems generator
+                const items = chart.options.plugins.legend.labels.generateLabels(chart);
+
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.style.alignItems = 'center';
+                    li.style.cursor = 'pointer';
+                    li.style.display = 'flex';
+                    li.style.flexDirection = 'row';
+                    li.style.marginLeft = '10px';
+
+                    li.onclick = () => {
+                        const { type } = chart.config;
+                        if (type === 'pie' || type === 'doughnut') {
+                            // Pie and doughnut charts only have a single dataset and visibility is per item
+                            chart.toggleDataVisibility(item.index);
+                        } else {
+                            chart.setDatasetVisibility(item.datasetIndex, !chart.isDatasetVisible(item.datasetIndex));
+                        }
+                        chart.update();
+                    };
+
+                    // Color box
+                    const boxSpan = document.createElement('span');
+                    boxSpan.style.background = item.fillStyle;
+                    boxSpan.style.borderColor = item.strokeStyle;
+                    boxSpan.style.borderWidth = item.lineWidth + 'px';
+                    boxSpan.style.display = 'inline-block';
+                    boxSpan.style.flexShrink = 0;
+                    boxSpan.style.height = '20px';
+                    boxSpan.style.marginRight = '10px';
+                    boxSpan.style.width = '20px';
+
+                    // Text
+                    const textContainer = document.createElement('p');
+                    textContainer.style.color = item.fontColor;
+                    textContainer.style.margin = 0;
+                    textContainer.style.padding = 0;
+                    textContainer.style.textDecoration = item.hidden ? 'line-through' : '';
+
+                    const text = document.createTextNode(item.text);
+                    textContainer.appendChild(text);
+
+                    li.appendChild(boxSpan);
+                    li.appendChild(textContainer);
+                    ul.appendChild(li);
+                });
+            }
+        };
 
     </script>
 </body>
