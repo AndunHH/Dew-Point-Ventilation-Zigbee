@@ -63,11 +63,11 @@ The device includes a switchable socket that works according to the Zigbee stand
 1. The inner and outer sensors are scanned alternately every two seconds. The air temperature and relative humidity are determined. 
 2. Eight pairs of values are averaged so that decisions are based on approximately half a minute and not on individual values.
 3. The dew point temperature is calculated from the relative humidity and the temperature. The dew point temperature is a measure of the absolute amount of moisture in the air. 
-4. If the answers to the following four questions are yes, ventilation makes sense - otherwise not!
+4. If the answers to the following four questions are yes, ventilation makes sense - otherwise not! (adjust values in [processSensorData.h](DewPointFan/lib/processSensorData/processSensorData.h))
    - Is the temperature inside above 10°C?
    - Is the temperature outside above -2°C?
    - Is the dew point inside above 5°C?
-   - Is the dew point outside 5°C lower than inside? It only makes sense to ventilate If it is noticeably drier outside than inside!
+   - Is the dew point outside 3°C lower than inside? It only makes sense to ventilate If it is noticeably drier outside than inside!
 5. If the appliance is in automatic mode (“AUTO”) and ventilation makes sense (see 4.) then the fan is switched on for 15 minutes.
 6. As typical bathroom fans are not designed for continuous operation, the fan then switches off again for 10 minutes. 
 7. After the 10 min break, the fan may be switched on again if ventilation makes sense.
