@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dewpoint Ventilation - Visualization</title>
+    <title>Taupunkt Lüftung - Visualisierung</title>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -88,7 +88,7 @@
             ).join('\n');
         }
 
-        function createChart(ctx, datasets, title, yLabel, customFill = false, showX = true, annotationsSet = null, plugInAdd) {
+        function createChart(ctx, datasets, title, yLabel, customFill = false, showX = true, annotationsSet = null) {
             const chart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets },
