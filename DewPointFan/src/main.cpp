@@ -28,38 +28,37 @@ static uint8_t ledState = HIGH;
 /// @brief Call back function for the external mode button click
 /// @param button_handle
 /// @param usr_data
-static void onButtonSingleClickCb(void *button_handle, void *usr_data)
-{
+static void onButtonSingleClickCb(void *button_handle, void *usr_data) {
   Serial.println("Button single click");
   controlFan.incrementUserSetpoint();
-  dispHelper.showSpecificDisplay(DISP_MODE); // switch the display to show the mode in next iteration
+  dispHelper.showSpecificDisplay(
+      DISP_MODE); // switch the display to show the mode in next iteration
 }
 
-/// @brief Call back function for the internal "boot" button, directly on the esp32c6 module -> long press release to initiate a factory reset. Then, after the reset you have 180s to connect a new plug
+/// @brief Call back function for the internal "boot" button, directly on the esp32c6 module -> long
+/// press release to initiate a factory reset. Then, after the reset you have 180s to connect a new
+/// plug
 /// @param button_handle
 /// @param usr_data
-static void onLongPressUpEventCb(void *button_handle, void *usr_data)
-{
+static void onLongPressUpEventCb(void *button_handle, void *usr_data) {
   Serial.println("Button long press up");
   dispHelper.showSpecificDisplay(DISP_ZIGBEERESET);
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Version 3"; // Todo: find a cleaner way to track the 
+char versionStr[10] = "Version 3"; // Todo: find a cleaner way to track the
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
 char timestamp[TIMESTAMP_LENGTH] = "2025-06-25 20:01:10";
 char dateDispStr[DATE_LENGTH] = "25.06.2025";
 char timeDispStr[TIME_LENGTH] = "20:01:10";
-char modeChar[2] = "m";  // active mode "0", "1", or "A" for auto
+char modeChar[2] = "m"; // active mode "0", "1", or "A" for auto
 
-
-
-void setup()
-{
+void setup() {
   Serial.begin(115200);
-  delay(4000); // Wait four seconds, to have enough time to start the serial monitor to see the setup
+  delay(
+      4000); // Wait four seconds, to have enough time to start the serial monitor to see the setup
   rtcHelper.init();
   sdHelper.init();
   dispHelper.init(versionStr);
@@ -79,8 +78,7 @@ void setup()
   zigbeeSwitchHelper.init();
 }
 
-void loop()
-{
+void loop() {
   static unsigned long lastdebugTime = 0;
   unsigned long now = millis();
 
@@ -99,8 +97,7 @@ void loop()
   // RTC loop
 
   rtcHelper.loop();
-  if (rtcHelper.createFileName())
-  {
+  if (rtcHelper.createFileName()) {
     Serial.println("newFileName detected");
     rtcHelper.getFileName(tmpFileName);
     sdHelper.setFileName(tmpFileName);
@@ -127,21 +124,23 @@ void loop()
   yield();
 
   // Check if a new screens needs to be drawn to the display
-  switch (dispHelper.loop())
-  {
+  switch (dispHelper.loop()) {
   case DISP_TIME:
     controlFan.getModeCharacter(modeChar);
     rtcHelper.createTimeStampDispShort(dateDispStr, timeDispStr);
 
-    dispHelper.showTimeAndStatus(dateDispStr, timeDispStr, sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady(), versionStr, modeChar, turnFanOn);
+    dispHelper.showTimeAndStatus(dateDispStr, timeDispStr, sdHelper.isSDinserted(),
+                                 zigbeeSwitchHelper.isReady(), versionStr, modeChar, turnFanOn);
     break;
   case DISP_VERSION:
     dispHelper.showVersion(sdHelper.isSDinserted(), zigbeeSwitchHelper.isReady(), versionStr);
     break;
   case DISP_TEMP:
     controlFan.getModeCharacter(modeChar);
-    
-    dispHelper.showTemp(processSensorData.getAverageMeasurements(true), processSensorData.getAverageMeasurements(false), processSensorData.getVentilationUsefullStatus(),modeChar, turnFanOn);
+
+    dispHelper.showTemp(processSensorData.getAverageMeasurements(true),
+                        processSensorData.getAverageMeasurements(false),
+                        processSensorData.getVentilationUsefullStatus(), modeChar, turnFanOn);
     break;
   case DISP_MODE:
     dispHelper.showMode(controlFan.getUserSetpoint());
@@ -152,7 +151,7 @@ void loop()
   default:
     // don't change display
     break;
-  }; 
+  };
 
   yield();
 
@@ -160,8 +159,7 @@ void loop()
   zigbeeSwitchHelper.loop();
 
   yield();
-  if (now - lastdebugTime >= 2000)
-  {
+  if (now - lastdebugTime >= 2000) {
     lastdebugTime = now;
 
     /*

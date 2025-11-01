@@ -21,53 +21,44 @@
 #error "Data is saved to often to SD card"
 #endif
 
-#define CSV_HEADER F("Date;Temperature T_i;Temperature T_o;Humidity H_i;Humidity H_o;Dew point DP_i;Dew point DP_o;validCnt_i;validCnt_o;Fan;Mode;On_s;Off_s")
+#define CSV_HEADER                                                                                 \
+  F("Date;Temperature T_i;Temperature T_o;Humidity H_i;Humidity H_o;Dew point DP_i;Dew point "     \
+    "DP_o;validCnt_i;validCnt_o;Fan;Mode;On_s;Off_s")
 
 // print debug?
-//define DEBUGSDHANDLING
+// define DEBUGSDHANDLING
 
-enum SDHelperStates
-{
-    SDINIT,
-    GETCREDENTIALS,
-    SDREADY,
-    NOSD
-};
+enum SDHelperStates { SDINIT, GETCREDENTIALS, SDREADY, NOSD };
 
 /// @brief SDHelper class to handle the sd card. Write sensor data to it and read wifi credentials.
-class SDHelper
-{
+class SDHelper {
 public:
-    boolean getWifiCredentials(char *ssid, char *pw);
+  boolean getWifiCredentials(char *ssid, char *pw);
 
-    boolean init();
+  boolean init();
 
-    boolean loop();
+  boolean loop();
 
-    SDHelper(uint8_t sdCSpin) : csPin(sdCSpin),
-                                sdPresent(false),
-                                sdState(SDINIT),
-                                credentialsValid(false),
-                                fileName(DEFAULTFILENAME)
-    {
-    }
-    void saveDataNow();
-    void setFileName(char fn[SD_FILENAMELENGTH]);
-    boolean writeCSVHeader();
-    boolean writeData(char *dateStr, char *tempStr, char *controlStr);
-    boolean isSDinserted();
+  SDHelper(uint8_t sdCSpin)
+      : csPin(sdCSpin), sdPresent(false), sdState(SDINIT), credentialsValid(false),
+        fileName(DEFAULTFILENAME) {}
+  void saveDataNow();
+  void setFileName(char fn[SD_FILENAMELENGTH]);
+  boolean writeCSVHeader();
+  boolean writeData(char *dateStr, char *tempStr, char *controlStr);
+  boolean isSDinserted();
 
 private:
-    boolean getWifiCredentialsFromSD();
+  boolean getWifiCredentialsFromSD();
 
-    uint8_t csPin;
-    boolean sdPresent;
-    SDHelperStates sdState;
-    unsigned long lastSDTime;
-    unsigned long lastSDSaveTime;
-    char _ssid[WIFICREDENTIALLENGTH];
-    char _pw[WIFICREDENTIALLENGTH];
-    boolean credentialsValid;
-    boolean checkSDPresence();
-    char fileName[SD_FILENAMELENGTH]; // file name for the datalogger
+  uint8_t csPin;
+  boolean sdPresent;
+  SDHelperStates sdState;
+  unsigned long lastSDTime;
+  unsigned long lastSDSaveTime;
+  char _ssid[WIFICREDENTIALLENGTH];
+  char _pw[WIFICREDENTIALLENGTH];
+  boolean credentialsValid;
+  boolean checkSDPresence();
+  char fileName[SD_FILENAMELENGTH]; // file name for the datalogger
 };
