@@ -5,6 +5,10 @@ This repository contains the source code for a dew point ventilator as initially
 
 
 # Newest Updates:
+September 2025: 
+* Formatting of code enforced with CLANG. 
+* Explained manual versioning scheme in this [pre-release checklist](preRelease.md).
+
 July 2025: Update of the [visualization](#recording-the-data-on-the-sd-card-and-visualization). Now directly in HTML and javascript. Try it out here: [VisualizeData.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData.html).
 
 # Instructions for the dew point ventilator
@@ -208,4 +212,4 @@ This is not used now, but the idea is, that the system uses wifi to get a proper
 - Show in the display, if no plug is bound at all.
 
 ## Visualization
-- Simplify the visualization script massively so it can be run by any non-nerd or "DAU" who has only a PC and the sd card.
+- Add the actual limits that are used to calculate if ventilation is usefull to the SD card. Then read them during visualization, as they are hardcoded now and always show the default limits and not the actual used ones, if they differ.
