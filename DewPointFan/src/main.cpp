@@ -14,6 +14,16 @@
 #error "Filenamelength in SD and RTC don't match"
 #endif
 
+// If SENSORPWRRESET is defined ("#define ... " instead of "// define..."), the sensors are not
+// powered directly from 3,3V. Instead they are assumed to be connected to a pin SensorPWR. Then, we
+// are able to reset the sensors if the communication fails.
+
+// define SENSORPWRRESET
+
+#ifdef SENSORPWRRESET
+const int SensorPWR = D3; // Sensors are powered from this pin
+#endif
+
 ProcessSensorData processSensorData;
 
 ControlFan controlFan;
@@ -46,7 +56,7 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data) {
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Ver 3.0.1";
+char versionStr[10] = "Ver 3.1.0";
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
@@ -56,6 +66,10 @@ char timeDispStr[TIME_LENGTH] = "20:01:10";
 char modeChar[2] = "m"; // active mode "0", "1", or "A" for auto
 
 void setup() {
+#ifdef SENSORPWRRESET // configure pin to power sensors
+  pinMode(SensorPWR, OUTPUT);
+  digitalWrite(SensorPWR, HIGH);
+#endif
   Serial.begin(115200);
   delay(
       4000); // Wait four seconds, to have enough time to start the serial monitor to see the setup
@@ -73,6 +87,9 @@ void setup() {
   controlFan.init();
 
   pinMode(LED_BUILTIN, OUTPUT); // builtin LED
+#ifdef SENSORPWRRESET
+  digitalWrite(D3, LOW); // sensor power not enabled jet
+#endif
   processSensorData.init();
 
   zigbeeSwitchHelper.init();
@@ -159,26 +176,41 @@ void loop() {
   zigbeeSwitchHelper.loop();
 
   yield();
+
+  // the following code is executed every 2s:
   if (now - lastdebugTime >= 2000) {
     lastdebugTime = now;
 
+    // Uncomment this section, if you want the processor to reset after 30s without valid data
     /*
-    // If no valid data was present for 30s restart!
-    // move away from this debug section!
     if(processSensorData.timeSinceAllDataWhereValid() > 30000) {
       Serial.println("restarting!");
       ESP.restart();
-    }*/
+    }
+    */
 
-    /*Serial.print(dateDispStr);
+    // use the the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3,3V)
+#ifdef SENSORPWRRESET
+    if (processSensorData.timeSinceAllDataWhereValid() > 30000) {
+      Serial.println("Restarting sensors!");
+      digitalWrite(SensorPWR, LOW);
+      delay(10000);
+    }
+#endif
+
+    // uncomment to see some status on the serial interface
+    /*
+    Serial.print(dateDispStr);
     Serial.print(" ");
     Serial.println(timeDispStr);
     processSensorData.printStatus();
-
     Serial.println(logCtrlStr);
-*/
-    // let the yellow LED blink...
-    // ledState == HIGH ? ledState = LOW : ledState = HIGH;
-    // digitalWrite(LED_BUILTIN, ledState);
+    */
+
+    // Uncomment to let the yellow LED blink...
+    /*
+    ledState == HIGH ? ledState = LOW : ledState = HIGH;
+    digitalWrite(LED_BUILTIN, ledState);
+     */
   }
 }
