@@ -8,6 +8,7 @@ This repository contains the source code for a dew point ventilator as initially
 September 2025: 
 * Formatting of code enforced with CLANG. 
 * Explained manual versioning scheme in this [pre-release checklist](preRelease.md).
+* Ver 3.1.0: Added [sensor power reset](#sensor-power-reset) to enable cycling the power of the sensors if the communication fails.
 
 July 2025: Update of the [visualization](#recording-the-data-on-the-sd-card-and-visualization). Now directly in HTML and javascript. Try it out here: [VisualizeData.html](https://andunhh.github.io/Dew-Point-Ventilation-Zigbee/Visualization/VisualizeData.html).
 
@@ -169,6 +170,12 @@ The DHT sensors are connected as follows:
 
 Modified picture, original taken from here: https://wiki.seeedstudio.com/Seeeduino-XIAO-Expansion-Board/#pinout-diagram
 
+# Sensor power reset
+In [Issue #9](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/9) we found, that some sensors and communication cables may be unreliable.
+There are two possible workarounds:
+1. Uncomment the block in main.cpp to reset the ESP32 after 30s of invalid sensor data. Look for `ESP.restart();`. As this is only restarting the ESP32, the sensors may still be in a blocked state.
+2. Connect the sensors to a logic pin (e.g. D3) instead of 3.3V and use this pin to reset the sensors, if the communication is invalid. 
+Define the `SENSORPWRRESET` at top of main.cpp to enable this feature.
 
 # Components
 | component | Approx. price |
