@@ -39,14 +39,38 @@ SerialTimeHelper serialTimeHelper(rtcHelper);
 
 static uint8_t ledState = HIGH;
 
+// --- NEU: Display-Timeout-Handling -----------------------------------------
+// Display-Timeout in Millisekunden (10 Minuten)
+static const unsigned long DISPLAY_TIMEOUT_MS = 10UL * 60UL * 1000UL;
+// Display-Timeout in Millisekunden (30 Sekunden) für Testzwecke
+// static const unsigned long DISPLAY_TIMEOUT_MS = 30UL * 1000UL;
+// Letzte "Nutzeraktivität" fürs Display (Start: setup, später: Buttondruck)
+static unsigned long lastDisplayActivity = 0;
+// ---------------------------------------------------------------------------
+
 /// @brief Call back function for the external mode button click
 /// @param button_handle
 /// @param usr_data
 static void onButtonSingleClickCb(void *button_handle, void *usr_data) {
   Serial.println("Button single click");
+
+  // NEU:
+  // Wenn das Display aus ist:
+  //  -> nur Display einschalten und Timer zurücksetzen
+  //  -> KEINE Änderung des Modus / Setpoints
+  if (!dispHelper.isDisplayOn()) {
+    dispHelper.setDisplayPower(true);
+    lastDisplayActivity = millis();
+    return;
+  }
+
+  // Wenn das Display an ist:
+  //  -> Verhalten wie bisher (Setpoint erhöhen, Modus anzeigen)
+  //  -> zusätzlich Timer zurücksetzen
   controlFan.incrementUserSetpoint();
   dispHelper.showSpecificDisplay(
       DISP_MODE); // switch the display to show the mode in next iteration
+  lastDisplayActivity = millis();
 }
 
 /// @brief Call back function for the internal "boot" button, directly on the esp32c6 module -> long
@@ -80,6 +104,10 @@ void setup() {
   rtcHelper.init();
   sdHelper.init();
   dispHelper.init(versionStr);
+
+  // NEU: Display-Timer initialisieren und sicherstellen, dass das Display an ist
+  dispHelper.setDisplayPower(true);
+  lastDisplayActivity = millis();
 
   // initializing a button
   Button *btnD1 = new Button(GPIO_NUM_1, false);
@@ -227,5 +255,10 @@ void loop() {
     ledState == HIGH ? ledState = LOW : ledState = HIGH;
     digitalWrite(LED_BUILTIN, ledState);
      */
+  }
+
+  // NEU: Display-Timeout prüfen – läuft unabhängig vom 2s-Debug-Intervall
+  if (dispHelper.isDisplayOn() && (now - lastDisplayActivity >= DISPLAY_TIMEOUT_MS)) {
+    dispHelper.setDisplayPower(false);
   }
 }

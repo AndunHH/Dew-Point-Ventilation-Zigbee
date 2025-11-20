@@ -33,6 +33,17 @@ public:
 
   DispHelperState loop();
 
+  // --- NEU: Display an/aus steuern und Status abfragen --------------------
+  /// @brief Enable or disable the OLED display using the U8x8 power save feature.
+  /// @param on true: display on, false: power save (display off)
+  void setDisplayPower(bool on);
+
+  /// @brief Returns the last set on/off state of the display.
+  bool isDisplayOn() const {
+    return displayOn;
+  }
+  // ------------------------------------------------------------------------
+
   void showVersion(boolean isSDpresent, bool isZigbeeReady, char *versionStr);
   void showMode(ControlFanStates controlFanState);
 
@@ -51,9 +62,10 @@ public:
   void showSpecificDisplay(DispHelperState targetState);
 
   DispHelper()
-      : dispState(DISP_INIT), lastDispTime(0),
+      : dispState(DISP_INIT), specificDispState(DISP_NOTHING), lastDispTime(0),
         u8x8(/* clock=*/SCL, /* data=*/SDA,
-             /* reset=*/U8X8_PIN_NONE) // OLEDs without Reset of the Display
+             /* reset=*/U8X8_PIN_NONE), // OLEDs without Reset of the Display
+        displayOn(true)                 // Display startet eingeschaltet
   {}
 
 private:
@@ -61,4 +73,6 @@ private:
   DispHelperState specificDispState;
   unsigned long lastDispTime;
   U8X8_SSD1306_128X64_NONAME_HW_I2C u8x8;
+
+  bool displayOn; // aktueller An/Aus-Status des Displays
 };
