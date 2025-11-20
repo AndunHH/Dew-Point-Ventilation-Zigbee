@@ -9,6 +9,7 @@
 
 #include "disphelper.h" // call after controlFan and after processSensorData
 #include "Button.h"
+#include "SerialTimeHelper.h"
 
 #if RTC_FILENAMELENGTH != SD_FILENAMELENGTH
 #error "Filenamelength in SD and RTC don't match"
@@ -32,6 +33,9 @@ RTCHelper rtcHelper;
 SDHelper sdHelper(D2); // sd CS pin is on D2
 DispHelper dispHelper;
 ZigbeeSwitchHelper zigbeeSwitchHelper;
+
+// Helfer für serielle Zeit-Kommandos (Z-Eingabe)
+SerialTimeHelper serialTimeHelper(rtcHelper);
 
 static uint8_t ledState = HIGH;
 
@@ -98,6 +102,17 @@ void setup() {
 void loop() {
   static unsigned long lastdebugTime = 0;
   unsigned long now = millis();
+
+  // serielle Kommandos (z.B. "Z" zum Zeit-Verbiegungs-Test) auswerten
+  serialTimeHelper.handleSerial();
+
+  // Wenn eine Zeit-Eingabe aktiv ist, überspringen wir den Rest der loop(),
+  // damit die serielle Anzeige nicht von anderen Ausgaben zugemüllt wird.
+  if (serialTimeHelper.isWaitingForTimeInput()) {
+    // Optional: ein kleines yield(), damit WiFi/RTOS zufrieden sind
+    yield();
+    return;
+  }
 
   // DHT Sensor loop
   // Get temperature event and print its value.
