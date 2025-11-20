@@ -14,9 +14,12 @@ boolean DispHelper::init(char *versionStr) {
   u8x8.begin();
   u8x8.setFlipMode(0); // set number from 1 to 3, the screen word will rotary
 
+  displayOn = true;     // sicherheitshalber setzen
+  u8x8.setPowerSave(0); // Display explizit anschalten
+
   u8x8.setFont(u8x8_font_chroma48medium8_r);
   u8x8.setCursor(0, 0);
-  u8x8.print("TAUPUNKT LUEFTER");
+  u8x8.print("TAUPUNKT-LUEFTER");
   u8x8.setCursor(0, 3);
   u8x8.println("init ... ");
   u8x8.setCursor(0, 6);
@@ -24,6 +27,19 @@ boolean DispHelper::init(char *versionStr) {
   lastDispTime = millis();
   dispState = DISP_TIME;
   return false;
+}
+
+// Display Ein/Ausschaltung
+void DispHelper::setDisplayPower(bool on) {
+  displayOn = on;
+
+  // U8x8-Power-Save-Funktion:
+  // 0 = Display an, 1 = Display aus
+  if (on) {
+    u8x8.setPowerSave(0);
+  } else {
+    u8x8.setPowerSave(1);
+  }
 }
 
 /// @brief DispHelper function that is called regularly in loop()
@@ -166,7 +182,7 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer,
   u8x8.print(modeChar); // print the character showing the mode
   u8x8.print("   MESSWERTE");
   printFanOnSymbol(isFanOn);
-  u8x8.print(" Drin  | Aussen ");
+  u8x8.print(" Innen | Aussen ");
   if (inner.validCnt != 8) {
     u8x8.setCursor(6, 1);
     u8x8.print(inner.validCnt);
@@ -218,7 +234,7 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer,
     u8x8.setCursor(0, 6);
     u8x8.print("Lueftung");
     u8x8.setCursor(0, 7);
-    u8x8.print("  sinnvoll.");
+    u8x8.print("  sinnvoll ");
     break;
   case NODATA:
     u8x8.setCursor(0, 6);
@@ -234,7 +250,7 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer,
     break;
   case TOOCOLDINSIDE:
     u8x8.setCursor(0, 6);
-    u8x8.print("Drin zu kalt");
+    u8x8.print("Innen zu kalt");
     break;
   case TOOCOLDOUTSIDE:
     u8x8.setCursor(0, 6);
@@ -242,13 +258,13 @@ void DispHelper::showTemp(AvgMeasurement inner, AvgMeasurement outer,
     break;
   case INSIDEDRYENOUGH:
     u8x8.setCursor(0, 6);
-    u8x8.print("Drinnen trocken");
+    u8x8.print("Innen trocken");
     break;
   case OUTSIDENOTDRYENOUGH:
     u8x8.setCursor(0, 6);
     u8x8.print(" Draussen nicht");
     u8x8.setCursor(0, 7);
-    u8x8.print("   trockener.");
+    u8x8.print("   trockener");
     break;
   default:
     u8x8.setCursor(0, 6);

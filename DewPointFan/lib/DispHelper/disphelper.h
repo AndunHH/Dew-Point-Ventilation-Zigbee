@@ -33,6 +33,13 @@ public:
 
   DispHelperState loop();
 
+  // --- NEU: Display an/aus steuern und Status abfragen ---
+  void setDisplayPower(bool on);
+  bool isDisplayOn() const {
+    return displayOn;
+  }
+  // --- ENDE NEU ---
+
   void showVersion(boolean isSDpresent, bool isZigbeeReady, char *versionStr);
   void showMode(ControlFanStates controlFanState);
 
@@ -51,9 +58,10 @@ public:
   void showSpecificDisplay(DispHelperState targetState);
 
   DispHelper()
-      : dispState(DISP_INIT), lastDispTime(0),
+      : dispState(DISP_INIT), specificDispState(DISP_NOTHING), lastDispTime(0),
         u8x8(/* clock=*/SCL, /* data=*/SDA,
-             /* reset=*/U8X8_PIN_NONE) // OLEDs without Reset of the Display
+             /* reset=*/U8X8_PIN_NONE), // OLEDs without Reset of the Display
+        displayOn(true)                 // Display startet eingeschaltet
   {}
 
 private:
@@ -61,4 +69,6 @@ private:
   DispHelperState specificDispState;
   unsigned long lastDispTime;
   U8X8_SSD1306_128X64_NONAME_HW_I2C u8x8;
+
+  bool displayOn; // NEU: aktueller An/Aus-Status des Displays
 };

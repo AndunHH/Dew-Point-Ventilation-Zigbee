@@ -1,3 +1,7 @@
+// rtchelper.h
+
+#pragma once
+
 // how often shall rtc loop be handled
 #define RTCwaitMS 1100
 
@@ -17,11 +21,11 @@
 /// @brief RTCHelper class to handle the rtc.
 class RTCHelper {
 public:
+  RTCHelper() : oldMonth(0), fileName("/YYYY-MM.csv") {};
+
   boolean init();
 
   boolean loop();
-
-  RTCHelper() : oldMonth(0), fileName("/YYYY-MM.csv") {};
 
   void printCompilerTime();
   boolean getCompilerDate();
@@ -31,6 +35,13 @@ public:
   void createTimeStampLogging(char *logTimeStr);
   void getFileName(char *str);
 
+  // zusätzliche Funktionen für Sommer-/Winterzeit:
+  // lokale Zeit (inkl. Sommerzeit) in die RTC schreiben
+  void setFromLocalDate(const RTC_Date &local);
+
+  // Debug-Ausgabe von Basiszeit (RTC) + lokaler Zeit
+  void debugPrintTimes();
+
 private:
   PCF8563_Class rtc;
 
@@ -39,4 +50,7 @@ private:
   unsigned long lastRTCTime;         // used for loop()
   char fileName[RTC_FILENAMELENGTH]; // file name for the datalogger
   uint8_t oldMonth = 0; // used to remember which month is in filename, see createFileName()
+
+  // lokale Zeit (mit Sommer-/Winterzeit) aus RTC holen
+  RTC_Date getLocalDate();
 };
