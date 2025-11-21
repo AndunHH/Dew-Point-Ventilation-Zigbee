@@ -382,3 +382,17 @@ void RTCHelper::debugPrintTimes() {
   Serial.println(dst ? "1 (Sommerzeit)" : "0 (Normalzeit)");
   Serial.println("===================");
 }
+
+void RTCHelper::printCurrentLocalShortWithDST() {
+  // Basiszeit (CET) aus RTC holen
+  RTC_Date base = rtc.getDateTime();
+  // Lokale Zeit (mit Sommer-/Winterzeit) berechnen
+  RTC_Date local = getLocalDate();
+  // DST-Flag aus Basiszeit bestimmen
+  bool dst = isDST_Europe_CET(base.year, base.month, base.day, base.hour);
+
+  char buf[48];
+  snprintf(buf, sizeof(buf), "Aktuelle Zeit: %02d.%02d.%04d %02d:%02d (%s)", local.day, local.month,
+           local.year, local.hour, local.minute, dst ? "Sommerzeit" : "Normalzeit");
+  Serial.println(buf);
+}

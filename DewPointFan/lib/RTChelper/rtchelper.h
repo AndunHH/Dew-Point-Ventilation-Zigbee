@@ -41,6 +41,9 @@ public:
   // Debug-Ausgabe von Basiszeit (RTC) + lokaler Zeit
   void debugPrintTimes();
 
+  // Aktuelle lokale Zeit kurz ausgeben: "Aktuelle Zeit: tt.mm.yyyy hh:mm (Normalzeit/Sommerzeit)"
+  void printCurrentLocalShortWithDST();
+
 private:
   PCF8563_Class rtc;
 

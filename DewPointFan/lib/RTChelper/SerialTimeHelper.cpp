@@ -1,3 +1,5 @@
+// SerielTimeHelper.cpp
+
 #include "SerialTimeHelper.h"
 
 bool SerialTimeHelper::parseDateTimeLine(const String &line, uint16_t &year, uint8_t &month,
@@ -17,21 +19,47 @@ bool SerialTimeHelper::parseDateTimeLine(const String &line, uint16_t &year, uin
 void SerialTimeHelper::handleSerial() {
   while (Serial.available() > 0) {
     char c = Serial.read();
+
     if (c == '\r' || c == '\n') {
       buffer.trim();
+
       if (buffer.length() > 0) {
+
+        // =======================
+        //   KOMMANDO-MODUS
+        // =======================
         if (!waitForTimeInput) {
-          // Kommandomodus
+
+          // Immer zuerst IST-Zeit ausgeben
+          rtcHelper.printCurrentLocalShortWithDST();
+
+          // Kommando auswerten
           if (buffer.equalsIgnoreCase("Z")) {
             waitForTimeInput = true;
             Serial.println("ZEIT-EINGABE: Bitte 'dd.mm.yyyy hh:mm' eingeben und Enter druecken.");
+            Serial.println("Zum Abbrechen: X eingeben und Enter druecken.");
+            Serial.println("Hinweis: Bitte immer die lokale Uhrzeit eingeben - Sommer-/Winterzeit "
+                           "wird automatisch erkannt.");
           } else {
             Serial.print("Unbekanntes Kommando: ");
             Serial.println(buffer);
             Serial.println("Verfuegbare Kommandos:");
             Serial.println("  Z  -> Zeit setzen (Test Sommer/Winterzeit)");
           }
+
+          // =======================
+          //   ZEIT-EINGABE-MODUS
+          // =======================
         } else {
+
+          // Abbruch mit X
+          if (buffer.equalsIgnoreCase("X")) {
+            Serial.println("ZEIT-EINGABE abgebrochen.");
+            waitForTimeInput = false;
+            buffer = "";
+            return;
+          }
+
           // Wir erwarten jetzt eine Zeitzeile
           uint16_t y;
           uint8_t m, d, h, mi;
@@ -45,14 +73,20 @@ void SerialTimeHelper::handleSerial() {
             local.second = 0;
 
             rtcHelper.setFromLocalDate(local);
-            rtcHelper.debugPrintTimes();
+
+            // Nach dem Setzen nochmal die aktuelle Zeit kurz anzeigen
+            rtcHelper.printCurrentLocalShortWithDST();
+
             waitForTimeInput = false;
           } else {
             Serial.println("Formatfehler. Erwartet wird: dd.mm.yyyy hh:mm");
             Serial.println("Beispiel: 30.03.2025 02:00");
+            Serial.println("Oder: X zum Abbrechen");
           }
         }
       }
+
+      // Zeilenpuffer löschen
       buffer = "";
     } else {
       buffer += c;
