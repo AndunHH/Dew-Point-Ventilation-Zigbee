@@ -14,7 +14,7 @@ boolean DispHelper::init(char *versionStr) {
   u8x8.begin();
   u8x8.setFlipMode(0); // set number from 1 to 3, the screen word will rotary
 
-  // NEU: sicherheitshalber Display-Status setzen und einschalten
+  // initialize display turned on
   displayOn = true;
   u8x8.setPowerSave(0); // 0 = Display an, 1 = Display aus (Power Save)
 
@@ -30,7 +30,6 @@ boolean DispHelper::init(char *versionStr) {
   return false;
 }
 
-// --- NEU: Display Ein/Ausschaltung ----------------------------------------
 /// @brief Enable or disable the OLED display using the U8x8 power save feature.
 /// @param on true: display on, false: power save (display off)
 void DispHelper::setDisplayPower(bool on) {

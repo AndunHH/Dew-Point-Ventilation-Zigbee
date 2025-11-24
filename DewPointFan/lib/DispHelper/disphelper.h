@@ -33,7 +33,6 @@ public:
 
   DispHelperState loop();
 
-  // --- NEU: Display an/aus steuern und Status abfragen --------------------
   /// @brief Enable or disable the OLED display using the U8x8 power save feature.
   /// @param on true: display on, false: power save (display off)
   void setDisplayPower(bool on);
