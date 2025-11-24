@@ -27,21 +27,36 @@ void SerialTimeHelper::handleSerial() {
   while (Serial.available() > 0) {
     char c = Serial.read();
 
-    if (c == '\r' || c == '\n') {
-      buffer.trim();
-
+    // Handle backspace (BS 0x08) and DEL (0x7F)
+    if (c == '\b' || c == 127) {
       if (buffer.length() > 0) {
+        buffer.remove(buffer.length() - 1);
+        // erase last character on terminal: backspace, space, backspace
+        Serial.print("\b \b");
+      }
+      continue;
+    }
+
+    // If newline or carriage return -> process the accumulated line
+    if (c == '\r' || c == '\n') {
+      // Echo newline for user feedback (keeps prompt tidy)
+      Serial.println();
+
+      String line = buffer;
+      line.trim();
+
+      if (line.length() > 0) {
 
         // =======================
-        //   KOMMANDO-MODUS
+        //   COMMAND MODE
         // =======================
         if (!waitForTimeInput) {
 
-          // Immer zuerst IST-Zeit ausgeben
+          // Print current local time first
           rtcHelper.printCurrentLocalShortWithDST();
 
-          // Kommando auswerten
-          if (buffer.equalsIgnoreCase("Z")) {
+          // Evaluate command
+          if (line.equalsIgnoreCase("Z")) {
             waitForTimeInput = true;
             Serial.println("ZEIT-EINGABE: Bitte 'dd.mm.yyyy hh:mm' eingeben und Enter druecken.");
             Serial.println("Zum Abbrechen: X eingeben und Enter druecken.");
@@ -49,28 +64,28 @@ void SerialTimeHelper::handleSerial() {
                            "wird automatisch erkannt.");
           } else {
             Serial.print("Unbekanntes Kommando: ");
-            Serial.println(buffer);
+            Serial.println(line);
             Serial.println("Verfuegbare Kommandos:");
             Serial.println("  Z  -> Zeit setzen (Test Sommer/Winterzeit)");
           }
 
           // =======================
-          //   ZEIT-EINGABE-MODUS
+          //   TIME-INPUT MODE
           // =======================
-        } else {
+        } else { // waitForTimeInput == true
 
-          // Abbruch mit X
-          if (buffer.equalsIgnoreCase("X")) {
+          // Cancel with X
+          if (line.equalsIgnoreCase("X")) {
             Serial.println("ZEIT-EINGABE abgebrochen.");
             waitForTimeInput = false;
             buffer = "";
-            return;
+            continue;
           }
 
-          // Wir erwarten jetzt eine Zeitzeile
+          // We expect a datetime line now
           uint16_t y;
           uint8_t m, d, h, mi;
-          if (parseDateTimeLine(buffer, y, m, d, h, mi)) {
+          if (parseDateTimeLine(line, y, m, d, h, mi)) {
             RTC_Date local;
             local.year = y;
             local.month = m;
@@ -81,7 +96,7 @@ void SerialTimeHelper::handleSerial() {
 
             rtcHelper.setFromLocalDate(local);
 
-            // Nach dem Setzen nochmal die aktuelle Zeit kurz anzeigen
+            // Show current time briefly after setting
             rtcHelper.printCurrentLocalShortWithDST();
 
             waitForTimeInput = false;
@@ -93,10 +108,16 @@ void SerialTimeHelper::handleSerial() {
         }
       }
 
-      // Zeilenpuffer löschen
+      // Clear line buffer after processing
       buffer = "";
-    } else {
-      buffer += c;
+      continue;
     }
+
+    // Printable characters: append to buffer and echo to serial so it behaves like a CLI
+    if (c >= 32 && c <= 126) {
+      buffer += c;
+      Serial.print(c); // echo input character
+    }
+    // ignore other control characters
   }
 }
