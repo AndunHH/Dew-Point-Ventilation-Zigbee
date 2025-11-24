@@ -16,7 +16,7 @@
 #endif
 
 // If SENSORPWRRESET is defined ("#define ... " instead of "// define..."), the sensors are not
-// powered directly from 3,3V. Instead they are assumed to be connected to a pin SensorPWR. Then, we
+// powered directly from 3.3V. Instead they are assumed to be connected to a pin SensorPWR. Then, we
 // are able to reset the sensors if the communication fails.
 
 // define SENSORPWRRESET
@@ -34,40 +34,32 @@ SDHelper sdHelper(D2); // sd CS pin is on D2
 DispHelper dispHelper;
 ZigbeeSwitchHelper zigbeeSwitchHelper;
 
-// Helfer für serielle Zeit-Kommandos (Z-Eingabe)
+// Helper for serial time commands (Z-input)
 SerialTimeHelper serialTimeHelper(rtcHelper);
 
 static uint8_t ledState = HIGH;
-
-// Display-Timeout in Millisekunden (10 Minuten)
-static const unsigned long DISPLAY_TIMEOUT_MS = 10UL * 60UL * 1000UL;
-// Display-Timeout in Millisekunden (30 Sekunden) für Testzwecke
-// static const unsigned long DISPLAY_TIMEOUT_MS = 30UL * 1000UL;
-// Letzte "Nutzeraktivität" fürs Display (Start: setup, später: Buttondruck)
-static unsigned long lastDisplayActivity = 0;
 
 /// @brief Call back function for the external mode button click
 /// @param button_handle
 /// @param usr_data
 static void onButtonSingleClickCb(void *button_handle, void *usr_data) {
   Serial.println("Button single click");
-
-  // Wenn das Display aus ist:
-  //  -> nur Display einschalten und Timer zurücksetzen
-  //  -> KEINE Änderung des Modus / Setpoints
+  // If the display is off:
+  //  -> only turn on the display and reset the timer
+  //  -> DO NOT change the mode / setpoint
   if (!dispHelper.isDisplayOn()) {
-    dispHelper.setDisplayPower(true);
-    lastDisplayActivity = millis();
+    dispHelper.resetActivityTimer(); // reset activity timer inside DispHelper
     return;
   }
 
-  // Wenn das Display an ist:
-  //  -> Verhalten wie bisher (Setpoint erhöhen, Modus anzeigen)
-  //  -> zusätzlich Timer zurücksetzen
+  // If the display is on:
+  //  -> increase setpoint,
+  //  -> show mode
+  //  -> reset the activity timer
   controlFan.incrementUserSetpoint();
   dispHelper.showSpecificDisplay(
-      DISP_MODE); // switch the display to show the mode in next iteration
-  lastDisplayActivity = millis();
+      DISP_MODE);                  // switch the display to show the mode in next iteration
+  dispHelper.resetActivityTimer(); // reset activity timer inside DispHelper
 }
 
 /// @brief Call back function for the internal "boot" button, directly on the esp32c6 module -> long
@@ -104,7 +96,7 @@ void setup() {
 
   // Init display timer and turn on display
   dispHelper.setDisplayPower(true);
-  lastDisplayActivity = millis();
+  dispHelper.resetActivityTimer(); // moved from main's lastDisplayActivity
 
   // initializing a button
   Button *btnD1 = new Button(GPIO_NUM_1, false);
@@ -117,7 +109,7 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT); // builtin LED
 #ifdef SENSORPWRRESET
-  digitalWrite(D3, LOW); // sensor power not enabled jet
+  digitalWrite(D3, LOW); // sensor power not enabled yet
 #endif
   processSensorData.init();
 
@@ -128,13 +120,13 @@ void loop() {
   static unsigned long lastdebugTime = 0;
   unsigned long now = millis();
 
-  // serielle Kommandos (z.B. "Z" zum Zeit-Verbiegungs-Test) auswerten
+  // evaluate serial commands (e.g. "Z" for time distortion test)
   serialTimeHelper.handleSerial();
 
-  // Wenn eine Zeit-Eingabe aktiv ist, überspringen wir den Rest der loop(),
-  // damit die serielle Anzeige nicht von anderen Ausgaben zugemüllt wird.
+  // If a time input is active, skip the rest of the loop(),
+  // so the serial output is not cluttered by other outputs.
   if (serialTimeHelper.isWaitingForTimeInput()) {
-    // Optional: ein kleines yield(), damit WiFi/RTOS zufrieden sind
+    // Optional: a small yield(), so WiFi/RTOS are happy
     yield();
     return;
   }
@@ -229,7 +221,7 @@ void loop() {
     }
     */
 
-    // use the the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3,3V)
+    // use the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3.3V)
 #ifdef SENSORPWRRESET
     if (processSensorData.timeSinceAllDataWhereValid() > 30000) {
       Serial.println("Restarting sensors!");
@@ -252,10 +244,5 @@ void loop() {
     ledState == HIGH ? ledState = LOW : ledState = HIGH;
     digitalWrite(LED_BUILTIN, ledState);
      */
-  }
-
-  // NEU: Display-Timeout prüfen – läuft unabhängig vom 2s-Debug-Intervall
-  if (dispHelper.isDisplayOn() && (now - lastDisplayActivity >= DISPLAY_TIMEOUT_MS)) {
-    dispHelper.setDisplayPower(false);
   }
 }
