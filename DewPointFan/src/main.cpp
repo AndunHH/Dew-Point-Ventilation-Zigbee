@@ -39,14 +39,12 @@ SerialTimeHelper serialTimeHelper(rtcHelper);
 
 static uint8_t ledState = HIGH;
 
-// --- NEU: Display-Timeout-Handling -----------------------------------------
 // Display-Timeout in Millisekunden (10 Minuten)
 static const unsigned long DISPLAY_TIMEOUT_MS = 10UL * 60UL * 1000UL;
 // Display-Timeout in Millisekunden (30 Sekunden) für Testzwecke
 // static const unsigned long DISPLAY_TIMEOUT_MS = 30UL * 1000UL;
 // Letzte "Nutzeraktivität" fürs Display (Start: setup, später: Buttondruck)
 static unsigned long lastDisplayActivity = 0;
-// ---------------------------------------------------------------------------
 
 /// @brief Call back function for the external mode button click
 /// @param button_handle
@@ -54,7 +52,6 @@ static unsigned long lastDisplayActivity = 0;
 static void onButtonSingleClickCb(void *button_handle, void *usr_data) {
   Serial.println("Button single click");
 
-  // NEU:
   // Wenn das Display aus ist:
   //  -> nur Display einschalten und Timer zurücksetzen
   //  -> KEINE Änderung des Modus / Setpoints
@@ -105,7 +102,7 @@ void setup() {
   sdHelper.init();
   dispHelper.init(versionStr);
 
-  // NEU: Display-Timer initialisieren und sicherstellen, dass das Display an ist
+  // Init display timer and turn on display
   dispHelper.setDisplayPower(true);
   lastDisplayActivity = millis();
 

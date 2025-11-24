@@ -2,6 +2,13 @@
 
 #include "SerialTimeHelper.h"
 
+/// @brief Parse a date given in dd.mm.yy hh:mm format (e.g. "24.12.2025 20:56")
+/// @param &line: String to be parsed
+/// @param &year: resulting year
+/// @param &month: resulting month
+/// @param &day: resulting day
+/// @param &hour: resulting hour
+/// @param &minute: resulting minute
 bool SerialTimeHelper::parseDateTimeLine(const String &line, uint16_t &year, uint8_t &month,
                                          uint8_t &day, uint8_t &hour, uint8_t &minute) {
   int d, m, y, h, mi;
