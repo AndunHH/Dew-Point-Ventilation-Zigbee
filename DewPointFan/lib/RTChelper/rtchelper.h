@@ -2,6 +2,10 @@
 
 #pragma once
 
+// Enable or disable daylight saving time handling.
+// Set to 1 to apply CEST/CET adjustments, 0 to disable DST handling.
+#define DAYLIGHTSAVING 1
+
 // how often shall rtc loop be handled
 #define RTCwaitMS 1100
 
