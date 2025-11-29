@@ -48,7 +48,6 @@ public:
   bool isDisplayOn() const {
     return displayOn;
   }
-  // ------------------------------------------------------------------------
 
   void showVersion(boolean isSDpresent, bool isZigbeeReady, char *versionStr);
   void showMode(ControlFanStates controlFanState);
