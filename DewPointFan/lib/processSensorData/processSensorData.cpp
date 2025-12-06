@@ -121,6 +121,12 @@ boolean ProcessSensorData::calculateAverage(CircularBuffer<TempAndHumidity, RING
 
   avg->temperature = avg->temperature / avg->validCnt;
   avg->humidity = avg->humidity / avg->validCnt;
+  // calculate the dew point
+  // the following method is called from within the dhtI object,
+  // even though calculateAverage is also used for the outer sensor.
+  // This is okay, because computeDewPoint relies only on the values provided
+  // as attributes and not on the values in the object itself. The computeDewPoint could be
+  // implemented as static, but the lib is as it is.
   avg->dewPoint = dhtI.computeDewPoint(avg->temperature, avg->humidity, false);
 
   return true;

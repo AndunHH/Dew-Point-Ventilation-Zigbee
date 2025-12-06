@@ -9,13 +9,14 @@
 
 #include "disphelper.h" // call after controlFan and after processSensorData
 #include "Button.h"
+#include "SerialTimeHelper.h"
 
 #if RTC_FILENAMELENGTH != SD_FILENAMELENGTH
 #error "Filenamelength in SD and RTC don't match"
 #endif
 
 // If SENSORPWRRESET is defined ("#define ... " instead of "// define..."), the sensors are not
-// powered directly from 3,3V. Instead they are assumed to be connected to a pin SensorPWR. Then, we
+// powered directly from 3.3V. Instead they are assumed to be connected to a pin SensorPWR. Then, we
 // are able to reset the sensors if the communication fails.
 
 // define SENSORPWRRESET
@@ -33,6 +34,9 @@ SDHelper sdHelper(D2); // sd CS pin is on D2
 DispHelper dispHelper;
 ZigbeeSwitchHelper zigbeeSwitchHelper;
 
+// Helper for serial time commands (Z-input)
+SerialTimeHelper serialTimeHelper(rtcHelper);
+
 static uint8_t ledState = HIGH;
 
 /// @brief Call back function for the external mode button click
@@ -40,9 +44,22 @@ static uint8_t ledState = HIGH;
 /// @param usr_data
 static void onButtonSingleClickCb(void *button_handle, void *usr_data) {
   Serial.println("Button single click");
+  // If the display is off:
+  //  -> only turn on the display and reset the timer
+  //  -> DO NOT change the mode / setpoint
+  if (!dispHelper.isDisplayOn()) {
+    dispHelper.resetActivityTimer(); // reset activity timer inside DispHelper
+    return;
+  }
+
+  // If the display is on:
+  //  -> increase setpoint,
+  //  -> show mode
+  //  -> reset the activity timer
   controlFan.incrementUserSetpoint();
   dispHelper.showSpecificDisplay(
-      DISP_MODE); // switch the display to show the mode in next iteration
+      DISP_MODE);                  // switch the display to show the mode in next iteration
+  dispHelper.resetActivityTimer(); // reset activity timer inside DispHelper
 }
 
 /// @brief Call back function for the internal "boot" button, directly on the esp32c6 module -> long
@@ -56,7 +73,7 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data) {
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Ver 3.1.0";
+char versionStr[10] = "Ver 3.2.0";
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
@@ -77,6 +94,10 @@ void setup() {
   sdHelper.init();
   dispHelper.init(versionStr);
 
+  // Init display timer and turn on display
+  dispHelper.setDisplayPower(true);
+  dispHelper.resetActivityTimer(); // moved from main's lastDisplayActivity
+
   // initializing a button
   Button *btnD1 = new Button(GPIO_NUM_1, false);
   Button *btnBoot = new Button(GPIO_NUM_9, false);
@@ -88,7 +109,7 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT); // builtin LED
 #ifdef SENSORPWRRESET
-  digitalWrite(D3, LOW); // sensor power not enabled jet
+  digitalWrite(D3, LOW); // sensor power not enabled yet
 #endif
   processSensorData.init();
 
@@ -98,6 +119,17 @@ void setup() {
 void loop() {
   static unsigned long lastdebugTime = 0;
   unsigned long now = millis();
+
+  // evaluate serial commands (e.g. "Z" for time distortion test)
+  serialTimeHelper.handleSerial();
+
+  // If a time input is active, skip the rest of the loop(),
+  // so the serial output is not cluttered by other outputs.
+  if (serialTimeHelper.isWaitingForTimeInput()) {
+    // Optional: a small yield(), so WiFi/RTOS are happy
+    yield();
+    return;
+  }
 
   // DHT Sensor loop
   // Get temperature event and print its value.
@@ -189,7 +221,7 @@ void loop() {
     }
     */
 
-    // use the the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3,3V)
+    // use the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3.3V)
 #ifdef SENSORPWRRESET
     if (processSensorData.timeSinceAllDataWhereValid() > 30000) {
       Serial.println("Restarting sensors!");

@@ -1,3 +1,11 @@
+// rtchelper.h
+
+#pragma once
+
+// Enable or disable daylight saving time handling.
+// Set to 1 to apply CEST/CET adjustments, 0 to disable DST handling.
+#define DAYLIGHTSAVING 1
+
 // how often shall rtc loop be handled
 #define RTCwaitMS 1100
 
@@ -17,11 +25,11 @@
 /// @brief RTCHelper class to handle the rtc.
 class RTCHelper {
 public:
+  RTCHelper() : oldMonth(0), fileName("/YYYY-MM.csv") {};
+
   boolean init();
 
   boolean loop();
-
-  RTCHelper() : oldMonth(0), fileName("/YYYY-MM.csv") {};
 
   void printCompilerTime();
   boolean getCompilerDate();
@@ -31,6 +39,15 @@ public:
   void createTimeStampLogging(char *logTimeStr);
   void getFileName(char *str);
 
+  // lokale Zeit (inkl. Sommerzeit) in die RTC schreiben
+  void setFromLocalDate(const RTC_Date &local);
+
+  // Debug-Ausgabe von Basiszeit (RTC) + lokaler Zeit
+  void debugPrintTimes();
+
+  // Aktuelle lokale Zeit kurz ausgeben: "Aktuelle Zeit: tt.mm.yyyy hh:mm (Normalzeit/Sommerzeit)"
+  void printCurrentLocalShortWithDST();
+
 private:
   PCF8563_Class rtc;
 
@@ -39,4 +56,7 @@ private:
   unsigned long lastRTCTime;         // used for loop()
   char fileName[RTC_FILENAMELENGTH]; // file name for the datalogger
   uint8_t oldMonth = 0; // used to remember which month is in filename, see createFileName()
+
+  // lokale Zeit (mit Sommer-/Winterzeit) aus RTC holen
+  RTC_Date getLocalDate();
 };

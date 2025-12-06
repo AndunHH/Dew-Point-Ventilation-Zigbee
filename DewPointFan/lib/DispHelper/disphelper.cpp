@@ -14,6 +14,10 @@ boolean DispHelper::init(char *versionStr) {
   u8x8.begin();
   u8x8.setFlipMode(0); // set number from 1 to 3, the screen word will rotary
 
+  // initialize display turned on
+  displayOn = true;
+  u8x8.setPowerSave(0); // 0 = Display an, 1 = Display aus (Power Save)
+
   u8x8.setFont(u8x8_font_chroma48medium8_r);
   u8x8.setCursor(0, 0);
   u8x8.print("TAUPUNKT LUEFTER");
@@ -23,13 +27,53 @@ boolean DispHelper::init(char *versionStr) {
   u8x8.println(versionStr);
   lastDispTime = millis();
   dispState = DISP_TIME;
-  return false;
+
+  // initialize activity timer (display just turned on)
+  lastActivityTime = millis();
+
+  return true;
+}
+
+/// @brief Enable or disable the OLED display using the U8x8 power save feature.
+/// @param on true: display on, false: power save (display off)
+void DispHelper::setDisplayPower(bool on) {
+  displayOn = on;
+
+  // U8x8-Power-Save-Funktion:
+  // 0 = Display an, 1 = Display aus
+  if (on) {
+    u8x8.setPowerSave(0);
+    // reset activity timer when turning the display on
+    lastActivityTime = millis();
+  } else {
+    u8x8.setPowerSave(1);
+  }
+}
+// --------------------------------------------------------------------------
+
+/// @brief Reset the inactivity timer (user activity) and turn on display
+void DispHelper::resetActivityTimer() {
+  lastActivityTime = millis();
+  setDisplayPower(true);
 }
 
 /// @brief DispHelper function that is called regularly in loop()
 /// @return the page to show
 DispHelperState DispHelper::loop() {
   unsigned long now = millis();
+
+  // Check for inactivity timeout and turn off display if needed
+  if (displayOn) {
+    if (now - lastActivityTime >= DISPLAY_INACTIVITY_TIMEOUT_MS) {
+#ifdef DEBUGDISPHANDLING
+      Serial.println("DispHelper: turning display off due to inactivity");
+#endif
+      setDisplayPower(false);
+      // when display is turned off, return nothing so main won't redraw
+      return DISP_NOTHING;
+    }
+  }
+
   DispHelperState showPage = DISP_NOTHING;
   switch (dispState) {
   case DISP_INIT:

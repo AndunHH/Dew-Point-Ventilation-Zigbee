@@ -5,6 +5,11 @@ This repository contains the source code for a dew point ventilator as initially
 
 
 # Newest Updates:
+November 2025:
+* Display sleeps after some minutes of inactivity. The rest of the systems stays active
+* Automatic day light saving time compensation (+1 hour). Enabled by `#define DAYLIGHTSAVING` command
+* [Date can be set via terminal](#set-date-via-serial) command `Z` (instructions are in german language) if necessary.
+
 September 2025: 
 * Formatting of code enforced with CLANG. 
 * Explained manual versioning scheme in this [pre-release checklist](preRelease.md).
@@ -177,7 +182,13 @@ There are two possible workarounds:
 2. Connect the sensors to a logic pin (e.g. D3) instead of 3.3V and use this pin to reset the sensors, if the communication is invalid. 
 Define the `SENSORPWRRESET` at top of main.cpp to enable this feature.
 
+# Set date via serial
+Connect to the esp via serial terminal. Type `Z` to start date mode. Enter date and time in format `dd.mm.yyyy hh:mm` and press enter. 
+
 # Components
+The following table lists the used components. 
+Regarding the temperature sensor: We got reports that not every sensor is capable of measuring negative temperatures even though their sold so... test the outside sensor in the fridge before winter!
+
 | component | Approx. price |
 | --- | --- |
 | [ESP32-C6 by Seeed Studio](https://www.seeedstudio.com/Seeed-Studio-XIAO-ESP32C6-p-5884.html) | 6 € |

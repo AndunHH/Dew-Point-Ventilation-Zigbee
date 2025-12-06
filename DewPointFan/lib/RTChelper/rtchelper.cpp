@@ -4,7 +4,120 @@
 #include <Wire.h>
 #include "buildTime.h"
 
-/// @brief Init the RTChelper. Checks RTC and compiler date and uses the newest, valid time and
+// ===== Helper functions for daylight saving time (EU, Europe/Berlin) =====
+
+static bool isLeapYear(uint16_t year) {
+  return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
+}
+
+static uint8_t daysInMonth(uint16_t year, uint8_t month) {
+  static const uint8_t dim[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  if (month == 2 && isLeapYear(year))
+    return 29;
+  return dim[month - 1];
+}
+
+// 0 = Sunday, 1 = Monday, ... 6 = Saturday
+static uint8_t dayOfWeek(uint16_t year, uint8_t month, uint8_t day) {
+  int y = year;
+  int m = month;
+  if (m < 3) {
+    m += 12;
+    y -= 1;
+  }
+  int K = y % 100;
+  int J = y / 100;
+  int h = (day + (13 * (m + 1)) / 5 + K + K / 4 + J / 4 + 5 * J) % 7;
+  int dow = (h + 6) % 7; // 0 = Sunday
+  return dow;
+}
+
+// last Sunday in the given month (3=March, 10=October)
+static uint8_t lastSunday(uint16_t year, uint8_t month) {
+  uint8_t d = daysInMonth(year, month);
+  uint8_t dow = dayOfWeek(year, month, d); // 0=Sun ... 6=Sat
+  return d - dow;                          // last Sunday
+}
+
+// Is daylight saving time (CEST) in effect for this local *standard time* (base time CET)?
+// The full DST logic is only compiled in if DAYLIGHTSAVING == 1.
+// Otherwise, isDST_Europe_CET() always returns false.
+#if defined(DAYLIGHTSAVING) && (DAYLIGHTSAVING == 1)
+static bool isDST_Europe_CET(uint16_t year, uint8_t month, uint8_t day, uint8_t hour) {
+  // Jan, Feb, Nov, Dec -> always standard time
+  if (month < 3 || month > 10)
+    return false;
+
+  // Apr–Sep -> always daylight saving time
+  if (month > 3 && month < 10)
+    return true;
+
+  // March / October -> check around the switch day
+  uint8_t ls = lastSunday(year, month);
+
+  if (month == 3) {
+    // Switch: last Sunday in March, 2:00 (from 2:00 to 3:00)
+    if (day > ls)
+      return true;
+    if (day < ls)
+      return false;
+    // On the switch day:
+    return (hour >= 2);
+  } else { // month == 10
+    // Switch: last Sunday in October, 3:00 (from 3:00 back to 2:00)
+    if (day < ls)
+      return true;
+    if (day > ls)
+      return false;
+    // On the switch day:
+    return (hour < 3);
+  }
+}
+#else
+static bool isDST_Europe_CET(uint16_t /*year*/, uint8_t /*month*/, uint8_t /*day*/,
+                             uint8_t /*hour*/) {
+  // Daylight saving disabled at compile time
+  return false;
+}
+#endif
+
+// Helper functions: add or subtract one hour to/from an RTC_Date
+static void addOneHour(RTC_Date &dt) {
+  dt.hour++;
+  if (dt.hour >= 24) {
+    dt.hour = 0;
+    dt.day++;
+    if (dt.day > daysInMonth(dt.year, dt.month)) {
+      dt.day = 1;
+      dt.month++;
+      if (dt.month > 12) {
+        dt.month = 1;
+        dt.year++;
+      }
+    }
+  }
+}
+
+static void subOneHour(RTC_Date &dt) {
+  if (dt.hour > 0) {
+    dt.hour--;
+  } else {
+    dt.hour = 23;
+    if (dt.day > 1) {
+      dt.day--;
+    } else {
+      if (dt.month > 1) {
+        dt.month--;
+      } else {
+        dt.month = 12;
+        dt.year--;
+      }
+      dt.day = daysInMonth(dt.year, dt.month);
+    }
+  }
+}
+
+/// @brief Init the RTCHelper. Checks RTC and compiler date and uses the newest, valid time and
 /// syncs the local esp time to it.
 /// @return true if local esp time has been successfully synced
 boolean RTCHelper::init() {
@@ -36,13 +149,14 @@ boolean RTCHelper::init() {
 #ifdef DEBUGRTCHANDLINGINIT
       Serial.println("Updating RTC to compiler date");
 #endif
-      rtc.setDateTime(compilerDate);
+      // Compiler time is local PC time (incl. DST) -> write as base time to RTC
+      setFromLocalDate(compilerDate);
       someValidTime = true;
     } else {
 #ifdef DEBUGRTCHANDLINGINIT
       Serial.println("RTC is up to date...");
 #endif
-      // the compilerDate is not newer, the rtc don't need updating.
+      // the compilerDate is not newer, the rtc doesn't need updating.
       someValidTime = true;
     }
   } else if (rtcValid && !compilerDateValid) {
@@ -54,7 +168,8 @@ boolean RTCHelper::init() {
 #ifdef DEBUGRTCHANDLINGINIT
     Serial.println("RTC date invalid, using compiler");
 #endif
-    rtc.setDateTime(compilerDate);
+    // Compiler time is local PC time (incl. possibly DST)
+    setFromLocalDate(compilerDate);
     someValidTime = true;
   } else {
 // nothing valid!?
@@ -108,7 +223,7 @@ void RTCHelper::printLocalTime()
 
 /// @brief prints the compiler time to the serial console
 void RTCHelper::printCompilerTime() {
-  char serialSend[18]; // declaration without initialization
+  char serialSend[22]; // a bit larger to avoid overflow
   sprintf(serialSend, "%d-%d-%d %d:%d:%d", compilerDate.year, compilerDate.month, compilerDate.day,
           compilerDate.hour, compilerDate.minute, compilerDate.second);
   Serial.print("Compile: ");
@@ -117,7 +232,7 @@ void RTCHelper::printCompilerTime() {
 
 /// @brief get time information from compile date and time, that looks like   "Dec 24 2024" and
 /// "13:09:03" and store it in compilerDate
-/// @return true if decoding was successfull
+/// @return true if decoding was successful
 boolean RTCHelper::getCompilerDate() {
   char s_month[5] = "xxx ";
   char s_date[12] = __DATE__;
@@ -129,7 +244,7 @@ boolean RTCHelper::getCompilerDate() {
     return false;
   }
 
-  // month is not taken from this string but from buildTime.h preprocess makro
+  // month is not taken from this string but from buildTime.h preprocessor macro
 
   compilerDate.day = day;
   compilerDate.month = BUILD_MONTH;
@@ -154,22 +269,22 @@ boolean RTCHelper::isCompilerDateNewer() {
   } else if (compilerDate.year < now.year) {
     // compiler year is smaller i.e. older ->
     return false;
-  } else { // year is eqal
+  } else { // year is equal
     if (compilerDate.month > now.month) {
       return true;
     } else if (compilerDate.month < now.month) {
       return false;
-    } else { // month is eqal
+    } else { // month is equal
       if (compilerDate.day > now.day) {
         return true;
       } else if (compilerDate.day < now.day) {
         return false;
-      } else { // Day is eqal
+      } else { // Day is equal
         if (compilerDate.hour > now.hour) {
           return true;
         } else if (compilerDate.hour < now.hour) {
           return false;
-        } else { // hour is eqal
+        } else { // hour is equal
           if (compilerDate.minute > now.minute) {
             return true;
           } else if (compilerDate.minute < now.minute) {
@@ -187,7 +302,7 @@ boolean RTCHelper::isCompilerDateNewer() {
 /// @brief Create filename
 /// @return Returns true if filename has changed
 boolean RTCHelper::createFileName() {
-  RTC_Date now = rtc.getDateTime();
+  RTC_Date now = getLocalDate(); // use local time
   sprintf(fileName, "/%04d-%02d.csv", now.year, now.month);
   if (now.month != oldMonth) {
     oldMonth = now.month;
@@ -202,7 +317,7 @@ boolean RTCHelper::createFileName() {
 /// @param dateDispStr [DATE_LENGTH] DD.MM.YYYY
 /// @param timeDispStr [TIME_LENGTH] hh:mm:ss
 void RTCHelper::createTimeStampDisp(char *dateDispStr, char *timeDispStr) {
-  RTC_Date now = rtc.getDateTime();
+  RTC_Date now = getLocalDate(); // local time
   // dateDispStr DD.MM.YYYY
   snprintf(dateDispStr, DATE_LENGTH, "%02d.%02d.%04d", now.day, now.month, now.year);
   // timeDispStr hh:mm:ss
@@ -213,17 +328,17 @@ void RTCHelper::createTimeStampDisp(char *dateDispStr, char *timeDispStr) {
 /// @param dateDispStr [DATE_LENGTH] DD.MM.YYYY
 /// @param timeDispStr [TIME_LENGTH] hh:mm
 void RTCHelper::createTimeStampDispShort(char *dateDispStr, char *timeDispStr) {
-  RTC_Date now = rtc.getDateTime();
+  RTC_Date now = getLocalDate(); // local time
   // dateDispStr DD.MM.YYYY
   snprintf(dateDispStr, DATE_LENGTH, "%02d.%02d.%04d", now.day, now.month, now.year);
-  // timeDispStr hh:mm:ss
+  // timeDispStr hh:mm
   snprintf(timeDispStr, TIME_LENGTH, "%02d:%02d", now.hour, now.minute);
 }
 
 /// @brief Create timestamp strings for sd logging
 /// @param logTimeStr  [TIMESTAMP_LENGTH] "YYYY-MM-DD hh:mm:ss" for sd data logging
 void RTCHelper::createTimeStampLogging(char *logTimeStr) {
-  RTC_Date now = rtc.getDateTime();
+  RTC_Date now = getLocalDate(); // local time
   //"YYYY-MM-DD hh:mm:ss"
   snprintf(logTimeStr, TIMESTAMP_LENGTH, "%04d-%02d-%02d %02d:%02d:%02d", now.year, now.month,
            now.day, now.hour, now.minute, now.second);
@@ -232,4 +347,62 @@ void RTCHelper::createTimeStampLogging(char *logTimeStr) {
 /// @brief get filename
 void RTCHelper::getFileName(char *str) {
   memcpy(str, fileName, sizeof(fileName));
+}
+
+/// Set RTC from local time (including DST):
+/// local time -> subtract 1h if needed -> base time (CET) into RTC
+void RTCHelper::setFromLocalDate(const RTC_Date &local) {
+  RTC_Date base = local; // copy
+
+  if (isDST_Europe_CET(base.year, base.month, base.day, base.hour)) {
+    subOneHour(base);
+  }
+
+  rtc.setDateTime(base);
+}
+
+/// Get local time (with DST) from RTC
+RTC_Date RTCHelper::getLocalDate() {
+  RTC_Date base = rtc.getDateTime(); // base time
+  if (isDST_Europe_CET(base.year, base.month, base.day, base.hour)) {
+    addOneHour(base);
+  }
+  return base;
+}
+
+/// Debug output: base time vs. local time
+void RTCHelper::debugPrintTimes() {
+  RTC_Date base = rtc.getDateTime();
+  RTC_Date local = getLocalDate();
+  bool dst = isDST_Europe_CET(base.year, base.month, base.day, base.hour);
+
+  Serial.println("==== RTC Debug ====");
+  Serial.print("RAW (Base/CET): ");
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%02d.%02d.%04d %02d:%02d:%02d", base.day, base.month, base.year,
+           base.hour, base.minute, base.second);
+  Serial.println(buf);
+
+  Serial.print("Local (with DST): ");
+  snprintf(buf, sizeof(buf), "%02d.%02d.%04d %02d:%02d:%02d", local.day, local.month, local.year,
+           local.hour, local.minute, local.second);
+  Serial.println(buf);
+
+  Serial.print("DST flag        : ");
+  Serial.println(dst ? "1 (Daylight Saving Time)" : "0 (Standard Time)");
+  Serial.println("===================");
+}
+
+void RTCHelper::printCurrentLocalShortWithDST() {
+  // Get base time (CET) from RTC
+  RTC_Date base = rtc.getDateTime();
+  // Calculate local time (with DST)
+  RTC_Date local = getLocalDate();
+  // Determine DST flag from base time
+  bool dst = isDST_Europe_CET(base.year, base.month, base.day, base.hour);
+
+  char buf[48];
+  snprintf(buf, sizeof(buf), "Current time: %02d.%02d.%04d %02d:%02d (%s)", local.day, local.month,
+           local.year, local.hour, local.minute, dst ? "Daylight" : "Standard");
+  Serial.println(buf);
 }
