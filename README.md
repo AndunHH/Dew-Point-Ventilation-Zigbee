@@ -5,7 +5,7 @@ This repository contains the source code for a dew point ventilator as initially
 
 
 # Newest Updates:
-November 2025:
+November 2025 - Version 3.2.0:
 * Display sleeps after some minutes of inactivity. The rest of the systems stays active
 * Automatic day light saving time compensation (+1 hour). Enabled by `#define DAYLIGHTSAVING` command
 * [Date can be set via terminal](#set-date-via-serial) command `Z` (instructions are in german language) if necessary.
@@ -225,7 +225,6 @@ This is not used now, but the idea is, that the system uses wifi to get a proper
 - Change general behavior of the button, to wake up the display at all or prolong the actual shown screen. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
 - Use one of the LEDs (e.g. the yellow one) to indicate that zigbee pairing is enabled. See [issue #5](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/5#issuecomment-2741584899)
 - Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
-- Implement a switchover between standard and daylight saving time. See [issue #10](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/10)
 - Reset the whole controller once per day or if data are missing? Check `processSensorData.timeSinceAllDataWhereValid()`
 - Show in the display, if no plug is bound at all.
 
