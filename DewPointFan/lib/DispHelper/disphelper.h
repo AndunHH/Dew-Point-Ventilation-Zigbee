@@ -25,7 +25,8 @@ enum DispHelperState {
   DISP_TEMP,
   DISP_VERSION,
   DISP_MODE,
-  DISP_ZIGBEERESET
+  DISP_ZIGBEERESET,
+  DISP_SENSORRESET
 };
 
 /// @brief DispHelper class to handle the display. The regularly called loop() returns which screen
@@ -63,6 +64,7 @@ public:
                          bool isZigbeeReady, char *versionStr, char *modeChar, boolean isFanOn);
 
   void showZigBeeReset();
+  void showSensorReset();
 
   void showSpecificDisplay(DispHelperState targetState);
 

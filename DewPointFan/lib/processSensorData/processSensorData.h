@@ -57,6 +57,7 @@ public:
   void createLogChar(char *logStr);
 
   uint32_t timeSinceAllDataWhereValid();
+  boolean areBothSensorAvgValuesValid();
 
 private:
   VentilationUseFull ventilationUseFull;
@@ -78,7 +79,7 @@ private:
 
   boolean calculateAverage(CircularBuffer<TempAndHumidity, RING_BUFFER_SIZE> *buf,
                            AvgMeasurement *avg);
-  // boolean calculateAverage();
+
   /// @brief store the averaged measurements
   AvgMeasurement avgMeasurementI;
   AvgMeasurement avgMeasurementO;

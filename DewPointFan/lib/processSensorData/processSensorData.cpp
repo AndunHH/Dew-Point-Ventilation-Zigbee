@@ -279,3 +279,13 @@ uint32_t ProcessSensorData::timeSinceAllDataWhereValid() {
   */
   return max(now - timeLastValidDataO_ms, now - timeLastValidDataI_ms);
 }
+
+/// @brief Checks whether both sensor average values are valid
+/// @return true if both sensors have at least one valid measurement
+boolean ProcessSensorData::areBothSensorAvgValuesValid() {
+  if (avgMeasurementI.validCnt >= 1 && avgMeasurementO.validCnt >= 1) {
+    return true;
+  } else {
+    return false;
+  }
+}

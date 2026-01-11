@@ -109,7 +109,7 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT); // builtin LED
 #ifdef SENSORPWRRESET
-  digitalWrite(D3, LOW); // sensor power not enabled yet
+  digitalWrite(D3, HIGH); // sensor power not enabled yet
 #endif
   processSensorData.init();
 
@@ -197,6 +197,9 @@ void loop() {
   case DISP_ZIGBEERESET:
     dispHelper.showZigBeeReset();
     break;
+  case DISP_SENSORRESET:
+    dispHelper.showSensorReset();
+    break;
   default:
     // don't change display
     break;
@@ -222,11 +225,19 @@ void loop() {
     */
 
     // use the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3.3V)
+    // processSensorData.timeSinceAllDataWhereValid() returns the time in ms since both sensors had
+    // valid data
+
+    // processSensorData.areBothSensorAvgValuesValid() is also able to check this instantly, but you
+    // need to add some logic to allow the system to read some values, because at the start there
+    // are always no valid values.
 #ifdef SENSORPWRRESET
     if (processSensorData.timeSinceAllDataWhereValid() > 30000) {
       Serial.println("Restarting sensors!");
+      dispHelper.showSpecificDisplay(DISP_SENSORRESET);
       digitalWrite(SensorPWR, LOW);
       delay(10000);
+      digitalWrite(SensorPWR, HIGH);
     }
 #endif
 
