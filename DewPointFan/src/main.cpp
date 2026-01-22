@@ -16,7 +16,8 @@
 #endif
 
 // Sensor power reset feature: If SENSORPWRRESET is defined in processSensorData.h, sensors are
-// powered via SENSORPWRPIN instead of 3.3V, enabling automatic power cycling on communication failure.
+// powered via SENSORPWRPIN instead of 3.3V, enabling automatic power cycling on communication
+// failure.
 
 ProcessSensorData processSensorData;
 
@@ -66,7 +67,7 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data) {
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Ver 3.2.0";
+char versionStr[10] = "Ver 3.3.0";
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];

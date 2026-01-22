@@ -84,7 +84,14 @@ private:
   unsigned long lastReadI;
   unsigned long lastReadO;
 
-  enum ProcessSensorDataStates { INIT, READI, READO, CALC, SENSOR_POWER_OFF_WAIT, SENSOR_REINIT } processSensorDataStates;
+  enum ProcessSensorDataStates {
+    INIT,
+    READI,
+    READO,
+    CALC,
+    SENSOR_POWER_OFF_WAIT,
+    SENSOR_REINIT
+  } processSensorDataStates;
 
   boolean calcNewVentilationStartUseFull();
 
