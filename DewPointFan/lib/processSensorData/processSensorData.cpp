@@ -14,6 +14,18 @@ bool ProcessSensorData::init() {
   timeLastValidDataI_ms = millis();
   timeLastValidDataO_ms = timeLastValidDataI_ms;
   delayMS = 2000;
+
+#ifdef SENSORPWRRESET
+  // Configure sensor power pin
+  pinMode(SENSORPWRPIN, OUTPUT);
+  digitalWrite(SENSORPWRPIN, HIGH); // Power on sensors
+#ifdef DEBUGSENSORHANDLING
+  Serial.print("Sensor power pin D");
+  Serial.print(SENSORPWRPIN);
+  Serial.println(" configured and enabled");
+#endif
+#endif
+
   return true;
 }
 
@@ -61,8 +73,61 @@ void ProcessSensorData::loop() {
       timeLastValidDataO_ms = now;
     }
     calcNewVentilationStartUseFull();
+
+#ifdef SENSORPWRRESET
+    // Check if sensor reset is needed
+    if (timeSinceAllDataWhereValid() > SENSOR_RESET_TIMEOUT_MS) {
+      Serial.println("Sensor timeout detected! Initiating power cycle...");
+      sensorResetInProgress = true;
+      digitalWrite(SENSORPWRPIN, LOW); // Power off sensors
+      lastResetTime = now;
+      processSensorDataStates = SENSOR_POWER_OFF_WAIT;
+      break;
+    }
+#endif
+
     processSensorDataStates = READO;
     break;
+
+#ifdef SENSORPWRRESET
+  case SENSOR_POWER_OFF_WAIT:
+    // Wait for sensors to fully power down (non-blocking)
+    if (now - lastResetTime >= SENSOR_POWER_OFF_DURATION_MS) {
+#ifdef DEBUGSENSORHANDLING
+      Serial.println("Power-off duration complete. Powering sensors back on...");
+#endif
+      digitalWrite(SENSORPWRPIN, HIGH); // Power on sensors
+      lastResetTime = now;
+      processSensorDataStates = SENSOR_REINIT;
+    }
+    break;
+
+  case SENSOR_REINIT:
+    // Wait a moment for sensors to stabilize, then reinitialize
+    if (now - lastResetTime >= 2000) {
+#ifdef DEBUGSENSORHANDLING
+      Serial.println("Reinitializing DHT sensors after power cycle...");
+#endif
+      // Reinitialize DHT sensors
+      dhtI.setup(DHTPINI, DHTesp::DHT22);
+      dhtO.setup(DHTPINO, DHTesp::DHT22);
+
+      // Clear buffers to remove stale data
+      bufI.clear();
+      bufO.clear();
+
+      // Reset timing
+      timeLastValidDataI_ms = now;
+      timeLastValidDataO_ms = now;
+
+      sensorResetInProgress = false;
+      processSensorDataStates = READO;
+#ifdef DEBUGSENSORHANDLING
+      Serial.println("Sensor reset complete. Resuming normal operation.");
+#endif
+    }
+    break;
+#endif
   }
 }
 
@@ -288,4 +353,14 @@ boolean ProcessSensorData::areBothSensorAvgValuesValid() {
   } else {
     return false;
   }
+}
+
+/// @brief Check if sensor reset/power cycle is currently in progress
+/// @return true if sensors are being reset (display should show reset screen)
+boolean ProcessSensorData::isSensorResetInProgress() {
+#ifdef SENSORPWRRESET
+  return sensorResetInProgress;
+#else
+  return false;
+#endif
 }

@@ -15,15 +15,8 @@
 #error "Filenamelength in SD and RTC don't match"
 #endif
 
-// If SENSORPWRRESET is defined ("#define ... " instead of "// define..."), the sensors are not
-// powered directly from 3.3V. Instead they are assumed to be connected to a pin SensorPWR. Then, we
-// are able to reset the sensors if the communication fails.
-
-// define SENSORPWRRESET
-
-#ifdef SENSORPWRRESET
-const int SensorPWR = D3; // Sensors are powered from this pin
-#endif
+// Sensor power reset feature: If SENSORPWRRESET is defined in processSensorData.h, sensors are
+// powered via SENSORPWRPIN instead of 3.3V, enabling automatic power cycling on communication failure.
 
 ProcessSensorData processSensorData;
 
@@ -83,10 +76,6 @@ char timeDispStr[TIME_LENGTH] = "20:01:10";
 char modeChar[2] = "m"; // active mode "0", "1", or "A" for auto
 
 void setup() {
-#ifdef SENSORPWRRESET // configure pin to power sensors
-  pinMode(SensorPWR, OUTPUT);
-  digitalWrite(SensorPWR, HIGH);
-#endif
   Serial.begin(115200);
   delay(
       4000); // Wait four seconds, to have enough time to start the serial monitor to see the setup
@@ -108,9 +97,7 @@ void setup() {
   controlFan.init();
 
   pinMode(LED_BUILTIN, OUTPUT); // builtin LED
-#ifdef SENSORPWRRESET
-  digitalWrite(D3, HIGH); // sensor power not enabled yet
-#endif
+
   processSensorData.init();
 
   zigbeeSwitchHelper.init();
@@ -216,6 +203,11 @@ void loop() {
   if (now - lastdebugTime >= 2000) {
     lastdebugTime = now;
 
+    // Check if sensor reset is in progress and update display accordingly
+    if (processSensorData.isSensorResetInProgress()) {
+      dispHelper.showSpecificDisplay(DISP_SENSORRESET);
+    }
+
     // Uncomment this section, if you want the processor to reset after 30s without valid data
     /*
     if(processSensorData.timeSinceAllDataWhereValid() > 30000) {
@@ -223,23 +215,6 @@ void loop() {
       ESP.restart();
     }
     */
-
-    // use the SENSORPWRRESET feature (needs sensors connected to SensorPWR=D3 instead of 3.3V)
-    // processSensorData.timeSinceAllDataWhereValid() returns the time in ms since both sensors had
-    // valid data
-
-    // processSensorData.areBothSensorAvgValuesValid() is also able to check this instantly, but you
-    // need to add some logic to allow the system to read some values, because at the start there
-    // are always no valid values.
-#ifdef SENSORPWRRESET
-    if (processSensorData.timeSinceAllDataWhereValid() > 30000) {
-      Serial.println("Restarting sensors!");
-      dispHelper.showSpecificDisplay(DISP_SENSORRESET);
-      digitalWrite(SensorPWR, LOW);
-      delay(10000);
-      digitalWrite(SensorPWR, HIGH);
-    }
-#endif
 
     // uncomment to see some status on the serial interface
     /*
