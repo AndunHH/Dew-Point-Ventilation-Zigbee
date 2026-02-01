@@ -5,7 +5,7 @@ This repository contains the source code for a dew point ventilator as initially
 
 
 # Newest Updates:
-February 2026 - Version 3.3.0:
+February 2026 - Version 3.2.1:
 * Fix of sensor reset, see [sensor power reset](#sensor-power-reset), by including it into the processSensorData loop.
 
 November 2025 - Version 3.2.0:

@@ -67,7 +67,7 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data) {
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Ver 3.3.0";
+char versionStr[10] = "Ver 3.2.1";
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
@@ -210,6 +210,8 @@ void loop() {
     }
 
     // Uncomment this section, if you want the processor to reset after 30s without valid data
+    // A proably better way is to connect the sensor to a dedicated power pin and reset the sensor,
+    // see processSensorData.h -> #SENSORPWRRESET
     /*
     if(processSensorData.timeSinceAllDataWhereValid() > 30000) {
       Serial.println("restarting!");
