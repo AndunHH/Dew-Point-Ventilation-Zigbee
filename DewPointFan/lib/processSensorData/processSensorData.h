@@ -8,7 +8,7 @@
 #define DEWPOINT_I_MIN 5.0 // Minimaler Taupunkt innen, nur oberhalb läuft der Lüfter
 
 // Sensor power reset feature: enables power cycling sensors via GPIO pin
-#define SENSORPWRRESET
+// define SENSORPWRRESET // write #define instead of //define to enable sensor power reset feature
 #define SENSORPWRPIN D3 // GPIO pin that controls sensor power
 
 // Timeout before triggering sensor reset (30 seconds)
@@ -16,7 +16,7 @@
 // Duration to keep sensors powered off during reset (10 seconds)
 #define SENSOR_POWER_OFF_DURATION_MS 10000
 
-#define DEBUGSENSORHANDLING
+// define DEBUGSENSORHANDLING
 
 #include "DHTesp.h"
 #include <CircularBuffer.hpp>
