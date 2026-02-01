@@ -29,10 +29,9 @@ Build/upload via PlatformIO: `pio run -t upload`
 ## Key Patterns & Conventions
 
 ### Sensor Power Reset Feature
-Optional feature controlled by `#define SENSORPWRRESET` in `main.cpp`:
+Optional feature controlled by `#define SENSORPWRRESET` in `processSensorData.h`:
 - When enabled, sensors connect to D3 pin instead of 3.3V
 - Allows power cycling sensors if communication fails >30s
-- Example: `digitalWrite(SensorPWR, LOW); delay(10000); digitalWrite(SensorPWR, HIGH);`
 
 ### Ventilation Decision Logic
 Four conditions must ALL be true (see `processSensorData.h`):
