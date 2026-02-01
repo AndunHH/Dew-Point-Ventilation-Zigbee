@@ -136,6 +136,13 @@ DispHelperState DispHelper::loop() {
       dispState = DISP_TIME;
     }
     break;
+  case DISP_SENSORRESET:
+    if (now - lastDispTime >= DispWaitMS) {
+      showPage = DISP_TIME;
+      lastDispTime = now;
+      dispState = DISP_TIME;
+    }
+    break;
   default:
     dispState = DISP_INIT;
     break;
@@ -365,5 +372,13 @@ void DispHelper::showZigBeeReset() {
   u8x8.setFont(u8x8_font_courB18_2x3_f); //
   u8x8.setCursor(0, 0);
   u8x8.println("Zigbee");
+  u8x8.println("Reset");
+}
+
+void DispHelper::showSensorReset() {
+  u8x8.clear();
+  u8x8.setFont(u8x8_font_courB18_2x3_f); //
+  u8x8.setCursor(0, 0);
+  u8x8.println("Sensor");
   u8x8.println("Reset");
 }

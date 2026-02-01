@@ -5,6 +5,9 @@ This repository contains the source code for a dew point ventilator as initially
 
 
 # Newest Updates:
+February 2026 - Version 3.2.1:
+* Fix of sensor reset, see [sensor power reset](#sensor-power-reset), by including it into the processSensorData loop.
+
 November 2025 - Version 3.2.0:
 * Display sleeps after some minutes of inactivity. The rest of the systems stays active
 * Automatic day light saving time compensation (+1 hour). Enabled by `#define DAYLIGHTSAVING` command
@@ -155,21 +158,21 @@ The DHT sensors are connected as follows:
 
 ### inner sensor
 
-| pins of "Analog" connector 	|	pins of DHT22.1|
-| --- | --- |
-| GND | 	GND |
-|3V3 				|	VDD |
-|N/A = A0 			|	NC (not in function) |
-|0 = D0 				|	SDA |
+| pins of "Analog" connector 	|	pins of DHT22.1 | comment | 
+| --- | --- | --- | 
+| GND | 	GND | |
+|3V3 				|	VDD | connect to a pin to enable the sensor power reset feature! | 
+|N/A = A0 			|	NC (not in function) | | 
+|0 = D0 				|	SDA | |
 
 
 ### outer sensor
-| pins of "UART" connector	 |	pins of DHT22.2 |
-| --- | --- |
-|GND 				|	GND |
-|3V3 				|	VDD |
-|TX.6 				|	NC (not in function) |
-|RX.7 = D7 			|	SDA  |
+| pins of "UART" connector	 |	pins of DHT22.2 | comment  |
+| --- | --- | --- |
+|GND 				|	GND | |
+|3V3 				|	VDD |connect to a pin to enable the sensor power reset feature! | 
+|TX.6 				|	NC (not in function) | |
+|RX.7 = D7 			|	SDA  |  |
 
 ![Pin out of the expantionsboard](images/pinout-expansionboard.png)
 
@@ -180,7 +183,7 @@ In [Issue #9](https://github.com/AndunHH/Dew-Point-Ventilation-Zigbee/issues/9) 
 There are two possible workarounds:
 1. Uncomment the block in main.cpp to reset the ESP32 after 30s of invalid sensor data. Look for `ESP.restart();`. As this is only restarting the ESP32, the sensors may still be in a blocked state.
 2. Connect the sensors to a logic pin (e.g. D3) instead of 3.3V and use this pin to reset the sensors, if the communication is invalid. 
-Define the `SENSORPWRRESET` at top of main.cpp to enable this feature.
+Define the `#SENSORPWRRESET` at top of in [processSensorData.h](DewPointFan/lib/processSensorData/processSensorData.h) to enable this feature.
 
 # Set date via serial
 Connect to the esp via serial terminal. Type `Z` to start date mode. Enter date and time in format `dd.mm.yyyy hh:mm` and press enter. 
