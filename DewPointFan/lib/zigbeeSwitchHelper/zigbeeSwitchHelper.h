@@ -33,7 +33,7 @@ public:
 
   ZigbeeSwitchHelper()
       : zbSwitch(ZigbeeSwitch(SWITCH_ENDPOINT_NUMBER)), zigbeeSwitchHelperState(ZB_INIT),
-        lightSetpoint(false) {}
+        lightSetpoint(false), lastZigbeeTime(0) {}
 
   void reset();
 

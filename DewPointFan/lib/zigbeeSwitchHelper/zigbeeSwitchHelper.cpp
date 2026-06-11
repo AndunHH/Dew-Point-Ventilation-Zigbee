@@ -53,6 +53,7 @@ boolean ZigbeeSwitchHelper::init() {
     ESP.restart();
   }
 
+  lastZigbeeTime = millis();
   zigbeeSwitchHelperState = ZB_WAIT;
   return true;
 }
