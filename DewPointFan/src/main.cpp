@@ -67,7 +67,7 @@ static void onLongPressUpEventCb(void *button_handle, void *usr_data) {
   zigbeeSwitchHelper.reset(); // blocks the systems and reboots
 }
 
-char versionStr[10] = "Ver 3.2.1";
+char versionStr[10] = "Ver 3.3.1";
 char tmpFileName[RTC_FILENAMELENGTH] = "/2025-06.csv";
 char logStr[TEMPLOG_LENGTH];
 char logCtrlStr[LOGCTRLSTR_LENGTH];
