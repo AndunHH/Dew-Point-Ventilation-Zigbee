@@ -57,7 +57,7 @@ void ProcessSensorData::loop() {
       Serial.println(now);
       Serial.println("in");
 #endif
-      sensorData = dhtI.getTempAndHumidity(); // Read values from sensor 1
+      sensorData = dhtI.getTempAndHumidity(); // Read values from sensor 2
       bufI.push(sensorData);
       lastReadI = now;
       processSensorDataStates = CALC;
@@ -186,6 +186,13 @@ boolean ProcessSensorData::calculateAverage(CircularBuffer<TempAndHumidity, RING
 
   avg->temperature = avg->temperature / avg->validCnt;
   avg->humidity = avg->humidity / avg->validCnt;
+  if (buf == &bufI) {
+    avg->temperature += tempSensorOffset_degC / 2.0;
+    avg->humidity += humSensorOffset_pct / 2.0;
+  } else {
+    avg->temperature -= tempSensorOffset_degC / 2.0;
+    avg->humidity -= humSensorOffset_pct / 2.0;
+  }
   // calculate the dew point
   // the following method is called from within the dhtI object,
   // even though calculateAverage is also used for the outer sensor.

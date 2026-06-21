@@ -6,6 +6,10 @@
 #define TEMP_I_MIN 10.0 // Minimale Innentemperatur, bei der die Lüftung nicht mehr aktiviert wird.
 #define TEMP_O_MIN -2.0 // Minimale Außentemperatur, bei der die Lüftung nicht mehr aktiviert wird.
 #define DEWPOINT_I_MIN 5.0 // Minimaler Taupunkt innen, nur oberhalb läuft der Lüfter
+#define TEMP_SENSOR_OFFSET 0.0 // Temperature difference between inner and outer sensor in °C.
+                                // Positive values raise the inner reading and lower the outer reading by half each.
+#define HUM_SENSOR_OFFSET 0.0 // Humidity difference between inner and outer sensor in %.
+                              // Positive values raise the inner reading and lower the outer reading by half each.
 
 // Sensor power reset feature: enables power cycling sensors via GPIO pin
 // define SENSORPWRRESET // write #define instead of //define to enable sensor power reset feature
@@ -55,6 +59,8 @@ public:
   ProcessSensorData()
       : processSensorDataStates(INIT), condTempImin_degC(TEMP_I_MIN), condTempOmin_degC(TEMP_O_MIN),
         condDewPointImin_degC(DEWPOINT_I_MIN), condDewPointDiffmin_K(DELTAP),
+        tempSensorOffset_degC(TEMP_SENSOR_OFFSET),
+        humSensorOffset_pct(HUM_SENSOR_OFFSET),
         ventilationUseFull(NODATA), timeLastValidDataI_ms(0), timeLastValidDataO_ms(0),
         sensorResetInProgress(false), lastResetTime(0) {}
 
@@ -77,6 +83,8 @@ private:
   VentilationUseFull ventilationUseFull;
   uint32_t delayMS;
   float condDewPointDiffmin_K, condTempImin_degC, condTempOmin_degC, condDewPointImin_degC;
+  float tempSensorOffset_degC;
+  float humSensorOffset_pct;
 
   DHTesp dhtI;
   DHTesp dhtO;

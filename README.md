@@ -5,6 +5,10 @@ This repository contains the source code for a dew point ventilator as initially
 
 
 # Newest Updates:
+June 2026 - Version 3.3.1
+* Added hard-coded sensor offset in [processSensorData.h](DewPointFan/lib/processSensorData/processSensorData.h)
+* Minor fixes
+
 February 2026 - Version 3.2.1:
 * Fix of sensor reset, see [sensor power reset](#sensor-power-reset), by including it into the processSensorData loop.
 
@@ -65,7 +69,7 @@ The outdoor sensor should be placed outside so that it can measure the air tempe
 
 The control unit should be mounted indoors and reach the outdoor sensor with the 3m long cable. The indoor sensor on the housing of the control unit should not be directly in the airflow of the future fan. It is better if it can measure the indoor temperature and humidity undisturbed.
 
-The control unit is supplied with power using a cell phone power supply unit and a USB-C cable. When the power is connected, the device starts after 4s and shows information on the display.
+The control unit is supplied with power using a cell phone power supply unit and a USB-C cable. When the power is connected, the device starts after 4 s and shows information on the display.
 
 The device always starts in automatic mode.
 
@@ -221,6 +225,26 @@ Yes, the gpio warning may be ignored.
 ## What is "wifi.txt" needed for?
 This is not used now, but the idea is, that the system uses wifi to get a proper time stamp. Unfortunately, WiFi and zigbee is not working at the same time now.
 
+## How to fix an offset between the sensors?
+You can apply a hard-coded offset between the two sensors. Check the definitions in [processSensorData.h](DewPointFan/lib/processSensorData/processSensorData.h)
+
+## Warning about ADC_ATTEN_DB deprecation
+The followings warning during compilation are normal and can be ignored: 
+``` .pio/libdeps/build/ESP32_Button/src/original/button_adc.c: In function 'button_adc_init':
+.pio/libdeps/build/ESP32_Button/src/original/button_adc.c:199:13: warning: 'ADC_ATTEN_DB_11' is deprecated [-Wdeprecated-declarations]
+  199 |             .atten = ADC_BUTTON_ATTEN,
+``` 
+
+## Reported _errors_ during init
+There are some some errors reported during the programs startup phase via serial interface. Those are known bugs which may be ignored.
+```
+Initializing disp...[  4028][E][esp32-hal-gpio.c:176] __digitalWrite(): IO 23 is not set as GPIO.
+[  4134][E][esp32-hal-gpio.c:176] __digitalWrite(): IO 23 is not set as GPIO.
+[  4240][E][esp32-hal-gpio.c:176] __digitalWrite(): IO 23 is not set as GPIO.
+Initializing zigbee ...Adding ZigbeeSwitch endpoint to Zigbee Core
+newFileName detected
+[  4522][E][vfs_api.cpp:99] open(): /sd/wifi.txt does not exist, no permits
+```
 
 # Further Project ideas / Wanted features
 ## Controller
@@ -230,6 +254,7 @@ This is not used now, but the idea is, that the system uses wifi to get a proper
 - Use wifi credentials and check once per day if the wifi can be accessed to update the rtc.
 - Reset the whole controller once per day or if data are missing? Check `processSensorData.timeSinceAllDataWhereValid()`
 - Show in the display, if no plug is bound at all.
+- Read the offset for the sensor from the SD card.
 
 ## Visualization
 - Add the actual limits that are used to calculate if ventilation is usefull to the SD card. Then read them during visualization, as they are hardcoded now and always show the default limits and not the actual used ones, if they differ.
